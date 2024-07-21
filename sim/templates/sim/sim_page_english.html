@@ -1,0 +1,81 @@
+<!--
+    The english auction's simulation page
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <center>
+        <h1>Your username is {{request.session.username}}</h1>
+    </center>
+    <br>
+
+<!--    {% if request.user.is_authenticated  %}-->
+
+<!--    <center>-->
+<!--        Logout <a href = "{% url 'logout_user' %}">Logout</a>-->
+<!--    </center>-->
+<!--    {% endif %}-->
+    <div
+      class="chat__item__container"
+      id="id_chat_item_container"
+      style="font-size: 20px"
+    >
+        <p id="id_bid_price_display">100</p>
+        <br />
+        <!--    Bid Number    -->
+        <input type="number" id="id_message_send_input" />
+        <button type="submit" id="id_message_send_button">Send Message</button>
+        <br />
+        <br />
+    </div>
+    <script>
+      const room_id = window.location.pathname
+      const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id);
+
+      sim_socket.onopen = function (e) {
+        console.log("The connection was setup successfully !");
+      };
+
+      sim_socket.onclose = function (e) {
+        console.log("Something unexpected happened !");
+      };
+
+      document.querySelector("#id_message_send_input").focus();
+
+      document.querySelector("#id_message_send_input").onkeyup = function (e) {
+        if (e.keyCode == 13) {
+          document.querySelector("#id_message_send_button").click();
+        }
+      };
+
+      document.querySelector("#id_message_send_button").onclick = function (e) {
+        var messageInput = document.querySelector(
+          "#id_message_send_input"
+        ).value;
+
+        console.log(JSON.stringify({ message: messageInput, username : "{{request.session.username}}"}));
+
+        sim_socket.send(JSON.stringify({ message: messageInput, username : "{{request.session.username}}"}));
+      };
+
+      sim_socket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        console.log(data);
+        if (data.message.type == "price_update") {
+            var div = document.getElementById("id_bid_price_display");
+            div.innerHTML = "£" + data.message.price;
+        } else if (data.message.type == "auction_end") {
+            // Display auction end screen
+        } else {
+            console.log(e.data)
+        }
+
+      };
+    </script>
+</body>
+</html>
