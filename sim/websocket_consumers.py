@@ -27,7 +27,9 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
 
-    async def receive(self, text_data: str | None = None, bytes_data: bytes | None = None):
+    async def receive(
+        self, text_data: str | None = None, bytes_data: bytes | None = None
+    ):
         # Format {username: ..., message: {...}}
         parsed_data = json.loads(text_data)
 
@@ -37,6 +39,11 @@ class SimConsumer(AsyncWebsocketConsumer):
         # Interpret json data from web client
         username = parsed_data["username"]
         message = parsed_data["message"]
+
+        print(message)
+
+        # The final message to be broadcast
+        res = {"username": username, "message": {}}
 
         # Room ID should be equal to the username code of the admin user
         # I.e. If username = room id the admin is making changes
@@ -70,18 +77,45 @@ class SimConsumer(AsyncWebsocketConsumer):
                 self.sim.time_difference = message["timer"]
 
         if "update_auction" in message:
+            auction_updated = False
             # Instruction should be a tuple (instruction, [args])
             # Each instruction should return a boolean based on whether the auction has been updated
             # This can be used to determine whether a message should be broadcast
             instruction = message["update_auction"]
-            if instruction[0] == "ask" and hasattr(self.sim, "ask"):
-                broadcast_msg = self.sim.ask(*instruction[1])
-            elif instruction[0] == "bid" and hasattr(self.sim, "bid"):
-                broadcast_msg = self.sim.bid(*instruction[1])
-            elif instruction[0] == "initial_offer" and username == self.sim.auctioneer and hasattr(self.sim, "auctioneer_initial_offer"):
-                broadcast_msg = self.sim.auctioneer_initial_offer(*instruction[1])
-            elif instruction[0] == "update_offer" and username == self.sim.auctioneer and hasattr(self.sim, "auctioneer_update_offer"):
-                broadcast_msg = self.sim.auctioneer_update_offer(*instruction[1])
+            if instruction["method"] == "ask" and hasattr(self.sim, "ask"):
+                auction_updated = self.sim.ask(username, instruction["price"])
+            elif instruction["method"] == "bid" and hasattr(self.sim, "bid"):
+                if isinstance(self.sim, DutchAuction):
+                    # Dutch auctions do not require a provided price to bid
+                    auction_updated = self.sim.bid(username)
+                else:
+                    auction_updated = self.sim.bid(username, instruction["price"])
+            elif (
+                instruction["method"] == "initial_offer"
+                and username == self.sim.auctioneer
+                and hasattr(self.sim, "auctioneer_initial_offer")
+            ):
+                auction_updated = self.sim.auctioneer_initial_offer(
+                    username,
+                    instruction["asset"],
+                    instruction["price"],
+                    instruction["quantity"],
+                )
+            elif (
+                instruction["method"] == "update_offer"
+                and username == self.sim.auctioneer
+                and hasattr(self.sim, "auctioneer_update_offer")
+            ):
+                auction_updated = self.sim.auctioneer_update_offer(
+                    username, instruction["price"]
+                )
+
+            # if auction updated, make sure message is broadcast
+            # But dont remove previous message broadcast approvals
+            broadcast_msg = auction_updated or broadcast_msg
+
+            if auction_updated and hasattr(self.sim, "auction_price"):
+                res["message"]["price_update"] = self.sim.auction_price
 
         if broadcast_msg:
             # Should only be done if message is state-updating
@@ -89,9 +123,9 @@ class SimConsumer(AsyncWebsocketConsumer):
                 self.room_id,
                 {
                     "type": "send_message",
-                    "message": parsed_data["message"],
+                    "message": res,
                     "username": parsed_data["username"],
-                }
+                },
             )
 
     async def send_message(self, event):

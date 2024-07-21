@@ -10,7 +10,13 @@ class AuctionUser:
     money: int
     username: str
 
-    def __init__(self, username: str, assets: set[str], asset_range: tuple[int, int], money_range: tuple[int, int]):
+    def __init__(
+        self,
+        username: str,
+        assets: set[str],
+        asset_range: tuple[int, int],
+        money_range: tuple[int, int],
+    ):
         self.username = username
         self.assets = {asset: randint(*asset_range) for asset in assets}
         self.money = randint(*money_range)
@@ -28,23 +34,27 @@ class Auction:
     auctioneer: str | None = None
 
     def __init__(
-            self,
-            users: list[str],
-            assets: set[str],
-            asset_range: tuple[int, int] = (5, 15),
-            money_range: tuple[int, int] = (1000, 2000)
+        self,
+        users: list[str],
+        assets: set[str],
+        asset_range: tuple[int, int] = (5, 15),
+        money_range: tuple[int, int] = (1000, 2000),
     ):
-        self.users = {username: AuctionUser(username, assets, asset_range, money_range) for username in users}
+        self.users = {
+            username: AuctionUser(username, assets, asset_range, money_range)
+            for username in users
+        }
         self.possible_assets = assets
         self.asset_range = asset_range
         self.money_range = money_range
 
-    def bid(self, *args) -> bool:
-        ...
+    def bid(self, *args) -> bool: ...
 
     def add_user(self, username):
         if username not in self.users:
-            self.users[username] = AuctionUser(username, self.possible_assets, self.asset_range, self.money_range)
+            self.users[username] = AuctionUser(
+                username, self.possible_assets, self.asset_range, self.money_range
+            )
 
 
 class DutchAuction(Auction):
@@ -59,7 +69,7 @@ class DutchAuction(Auction):
         users: list[str],
         assets: set[str],
         asset_range: tuple[int, int] = (5, 15),
-        money_range: tuple[int, int] = (1000, 2000)
+        money_range: tuple[int, int] = (1000, 2000),
     ):
         super().__init__(users, assets, asset_range, money_range)
 
@@ -85,9 +95,15 @@ class DutchAuction(Auction):
                 return True
         return False
 
-    def auctioneer_initial_offer(self, account: str, asset: str, price: int, quantity: int) -> bool:
+    def auctioneer_initial_offer(
+        self, account: str, asset: str, price: int, quantity: int
+    ) -> bool:
         # Checking only that auction asset is none should be sufficient
-        if account == self.auctioneer and asset in self.possible_assets and self.auction_asset is None:
+        if (
+            account == self.auctioneer
+            and asset in self.possible_assets
+            and self.auction_asset is None
+        ):
             # We need to ensure the user actually has the correct amount of the asset to sell
             if self.users[account].assets[asset] >= quantity:
                 self.auction_asset = asset
@@ -120,7 +136,7 @@ class EnglishAuction(Auction):
         assets: set[str],
         asset_range: tuple[int, int] = (5, 15),
         money_range: tuple[int, int] = (1000, 2000),
-        timer: int = 10  # Default timer is 10 seconds
+        timer: int = 10,  # Default timer is 10 seconds
     ):
         super().__init__(users, assets, asset_range, money_range)
         self.time_difference = timer
@@ -129,7 +145,10 @@ class EnglishAuction(Auction):
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
             # Can a user pay for the asset
-            if current_user.money >= amount >= self.auction_price and self.timestamp + self.time_difference <= time():
+            if (
+                current_user.money >= amount >= self.auction_price
+                and self.timestamp + self.time_difference <= time()
+            ):
                 # Transfer money from buyer to auctioneer
                 self.auction_price = amount
                 self.auction_leader = self.users[account]
@@ -138,9 +157,15 @@ class EnglishAuction(Auction):
                 return True
         return False
 
-    def auctioneer_initial_offer(self, account: str, asset: str, price: int, quantity: int) -> bool:
+    def auctioneer_initial_offer(
+        self, account: str, asset: str, price: int, quantity: int
+    ) -> bool:
         # Checking only that auction asset is none should be sufficient
-        if account == self.auctioneer and asset in self.possible_assets and self.auction_asset is None:
+        if (
+            account == self.auctioneer
+            and asset in self.possible_assets
+            and self.auction_asset is None
+        ):
             # We need to ensure the user actually has the correct amount of the asset to sell
             if self.users[account].assets[asset] >= quantity:
                 self.auction_asset = asset
@@ -152,7 +177,11 @@ class EnglishAuction(Auction):
 
     # The event loop may call this every few seconds to check whether the auction is finished.
     def check_finished(self):
-        if self.timestamp + self.time_difference > time() and self.auctioneer is not None and self.auction_leader is not None:
+        if (
+            self.timestamp + self.time_difference > time()
+            and self.auctioneer is not None
+            and self.auction_leader is not None
+        ):
             auctioneer = self.users[self.auctioneer]
             # Transfer money from buyer to auctioneer
             self.auction_leader.money -= self.auction_price
@@ -191,7 +220,7 @@ class FirstPriceSealedBidAuction(Auction):
         assets: set[str],
         asset_range: tuple[int, int] = (5, 15),
         money_range: tuple[int, int] = (1000, 2000),
-        timer: int = 90  # Default timer is 90 seconds
+        timer: int = 90,  # Default timer is 90 seconds
     ):
         super().__init__(users, assets, asset_range, money_range)
         self.time_difference = timer
@@ -200,7 +229,10 @@ class FirstPriceSealedBidAuction(Auction):
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
             # Can a user pay for the asset
-            if current_user.money >= amount >= self.auction_price and self.timestamp + self.time_difference <= time():
+            if (
+                current_user.money >= amount >= self.auction_price
+                and self.timestamp + self.time_difference <= time()
+            ):
                 # Transfer money from buyer to auctioneer
                 self.auction_price = amount
                 self.auction_leader = self.users[account]
@@ -208,14 +240,23 @@ class FirstPriceSealedBidAuction(Auction):
                 # Broadcast this change to all participants of the room
                 return True
 
-        if self.num_bids >= len(self.users) or self.timestamp + self.time_difference <= time():
+        if (
+            self.num_bids >= len(self.users)
+            or self.timestamp + self.time_difference <= time()
+        ):
             ...
 
         return False
 
-    def auctioneer_initial_offer(self, account: str, asset: str, price: int, quantity: int) -> bool:
+    def auctioneer_initial_offer(
+        self, account: str, asset: str, price: int, quantity: int
+    ) -> bool:
         # Checking only that auction asset is none should be sufficient
-        if account == self.auctioneer and asset in self.possible_assets and self.auction_asset is None:
+        if (
+            account == self.auctioneer
+            and asset in self.possible_assets
+            and self.auction_asset is None
+        ):
             # We need to ensure the user actually has the correct amount of the asset to sell
             if self.users[account].assets[asset] >= quantity:
                 self.auction_asset = asset
@@ -229,8 +270,13 @@ class FirstPriceSealedBidAuction(Auction):
     # The event loop may call this every few seconds to check whether the auction is finished.
     def check_finished(self):
         if (
-            self.timestamp + self.time_difference > time() or self.num_bids >= len(self.users)
-        ) and self.auctioneer is not None and self.auction_leader is not None:
+            (
+                self.timestamp + self.time_difference > time()
+                or self.num_bids >= len(self.users)
+            )
+            and self.auctioneer is not None
+            and self.auction_leader is not None
+        ):
             auctioneer = self.users[self.auctioneer]
             # Transfer money from buyer to auctioneer
             self.auction_leader.money -= self.auction_price
@@ -259,7 +305,10 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
             # Can a user pay for the asset
-            if current_user.money >= amount >= self.auction_price[0] and self.timestamp + self.time_difference <= time():
+            if (
+                current_user.money >= amount >= self.auction_price[0]
+                and self.timestamp + self.time_difference <= time()
+            ):
                 # Transfer money from buyer to auctioneer
                 self.auction_price.appendleft(amount)
                 self.auction_leader.appendleft(self.users[account])
@@ -272,11 +321,13 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
                 # Broadcast this change to all participants of the room
                 return True
 
-        if self.num_bids >= len(self.users) or self.timestamp + self.time_difference <= time():
+        if (
+            self.num_bids >= len(self.users)
+            or self.timestamp + self.time_difference <= time()
+        ):
             ...
 
         return False
 
 
-class ContinuousDoubleAuction(Auction):
-    ...
+class ContinuousDoubleAuction(Auction): ...
