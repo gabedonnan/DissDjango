@@ -39,6 +39,14 @@
 
       sim_socket.onopen = function (e) {
         console.log("The connection was setup successfully !");
+        sim_socket.send(JSON.stringify(
+                {
+                    message: {
+                        register_user: true
+                    },
+                    username : "{{request.session.username}}"
+                }
+            ))
       };
 
       sim_socket.onclose = function (e) {

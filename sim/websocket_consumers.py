@@ -51,6 +51,7 @@ class SimConsumer(AsyncWebsocketConsumer):
         if "register_user" in message and username not in self.sim.users:
             if self.admin is None:
                 self.admin = username
+                self.sim.auctioneer = username
 
             self.sim.add_user(username)
 
