@@ -66,7 +66,7 @@
           "#id_message_send_input"
         ).value;
 
-        console.log(JSON.stringify({ message: {update_auction: {messageInput}}, username : "{{request.session.username}}"}));
+        // console.log(JSON.stringify({ message: {update_auction: {messageInput}}, username : "{{request.session.username}}"}));
 
         sim_socket.send(
             JSON.stringify(
@@ -83,9 +83,12 @@
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
         console.log(data);
-        if (data.message.type == "price_update") {
+        console.log("HH");
+        // console.log(data.message);
+
+        if (data.message.hasOwnProperty("price_update")) {
             var div = document.getElementById("id_bid_price_display");
-            div.innerHTML = "£" + data.message.price;
+            div.innerHTML = "£" + data.message.price_update;
         } else if (data.message.type == "auction_end") {
             // Display auction end screen
         } else {

@@ -1,7 +1,13 @@
 from django.urls import path, include, re_path
 from django.contrib.auth.views import LoginView, LogoutView
-from .views import main_page, simulation_page_dutch, simulation_page_english, simulation_page_fpsb, \
-    simulation_page_spsb, simulation_page_cda
+from .views import (
+    main_page,
+    simulation_page_dutch,
+    simulation_page_english,
+    simulation_page_fpsb,
+    simulation_page_spsb,
+    simulation_page_cda,
+)
 
 urlpatterns = [
     path("", main_page, name="main_page"),
@@ -9,7 +15,9 @@ urlpatterns = [
         r"dutch/(?P<room_name>\w+)", simulation_page_dutch, name="simulation_page_dutch"
     ),  # Dutch room path
     re_path(
-        r"english/(?P<room_name>\w+)", simulation_page_english, name="simulation_page_english"
+        r"english/(?P<room_name>\w+)",
+        simulation_page_english,
+        name="simulation_page_english",
     ),  # English room path
     re_path(
         r"fpsb/(?P<room_name>\w+)", simulation_page_fpsb, name="simulation_page_fpsb"

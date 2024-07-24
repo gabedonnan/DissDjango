@@ -8,8 +8,7 @@ from .auctions import *
 class SimConsumer(AsyncWebsocketConsumer):
     room_id: str
     room_group_id: str
-    admin: str | None = None
-    sim: Auction = DutchAuction([], set())
+    sim: Auction = EnglishAuction([], set())
     users: set[str] = set()
 
     async def connect(self):
@@ -40,22 +39,19 @@ class SimConsumer(AsyncWebsocketConsumer):
         username = parsed_data["username"]
         message = parsed_data["message"]
 
-        print(message)
-
         # The final message to be broadcast
-        res = {"username": username, "message": {}}
+        res = {}
 
         # Room ID should be equal to the username code of the admin user
         # I.e. If username = room id the admin is making changes
 
         if "register_user" in message and username not in self.sim.users:
-            if self.admin is None:
-                self.admin = username
+            if self.sim.auctioneer is None:
                 self.sim.auctioneer = username
 
             self.sim.add_user(username)
 
-        if username == self.admin:
+        if username == self.sim.auctioneer:
             if "rooom_type" in message:
                 room_type = message["room_type"]
                 cur_users = self.sim.users
@@ -116,16 +112,17 @@ class SimConsumer(AsyncWebsocketConsumer):
             broadcast_msg = auction_updated or broadcast_msg
 
             if auction_updated and hasattr(self.sim, "auction_price"):
-                res["message"]["price_update"] = self.sim.auction_price
+                res["price_update"] = self.sim.auction_price
 
         if broadcast_msg:
+            print(res)
             # Should only be done if message is state-updating
             await self.channel_layer.group_send(
                 self.room_id,
                 {
                     "type": "send_message",
                     "message": res,
-                    "username": parsed_data["username"],
+                    "username": username,
                 },
             )
 

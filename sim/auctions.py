@@ -56,6 +56,10 @@ class Auction:
                 username, self.possible_assets, self.asset_range, self.money_range
             )
 
+    def remove_user(self, username):
+        if username in self.users:
+            del self.users[username]
+
 
 class DutchAuction(Auction):
     auction_price: int | None = None
@@ -127,8 +131,8 @@ class EnglishAuction(Auction):
     # Username maps to money amount and quantity of items owned
     users: dict[str, AuctionUser]
     # Unix timestamp of last bid to calculate whether the auction has finished
-    timestamp: float
-    time_difference: int
+    timestamp: float | None = None
+    time_difference: int | None = None
 
     def __init__(
         self,
@@ -136,25 +140,33 @@ class EnglishAuction(Auction):
         assets: set[str],
         asset_range: tuple[int, int] = (5, 15),
         money_range: tuple[int, int] = (1000, 2000),
-        timer: int = 10,  # Default timer is 10 seconds
+        timer: int = 100000000000000,  # Default timer is 10 seconds
     ):
         super().__init__(users, assets, asset_range, money_range)
         self.time_difference = timer
 
     def bid(self, account: str, amount: int) -> bool:
+        try:
+            amount = int(amount)
+        except ValueError:
+            return False
+
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
+            print(current_user.money)
             # Can a user pay for the asset
             if (
-                current_user.money >= amount >= self.auction_price
-                and self.timestamp + self.time_difference <= time()
-            ):
-                # Transfer money from buyer to auctioneer
-                self.auction_price = amount
-                self.auction_leader = self.users[account]
-                self.timestamp = time()
-                # Broadcast this change to all participants of the room
-                return True
+                self.timestamp is None
+                or self.timestamp + self.time_difference <= time()
+            ) and current_user.money >= amount:
+                if self.auction_price is None or amount >= self.auction_price:
+                    print(3)
+                    # Transfer money from buyer to auctioneer
+                    self.auction_price = amount
+                    self.auction_leader = self.users[account]
+                    self.timestamp = time()
+                    # Broadcast this change to all participants of the room
+                    return True
         return False
 
     def auctioneer_initial_offer(
