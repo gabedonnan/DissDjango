@@ -157,16 +157,16 @@ class EnglishAuction(Auction):
             # Can a user pay for the asset
             if (
                 self.timestamp is None
-                or self.timestamp + self.time_difference <= time()
+                or self.timestamp + self.time_difference >= time()
             ) and current_user.money >= amount:
                 if self.auction_price is None or amount >= self.auction_price:
-                    print(3)
                     # Transfer money from buyer to auctioneer
                     self.auction_price = amount
                     self.auction_leader = self.users[account]
                     self.timestamp = time()
                     # Broadcast this change to all participants of the room
                     return True
+
         return False
 
     def auctioneer_initial_offer(

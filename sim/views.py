@@ -42,4 +42,4 @@ def main_page(request, *args, **kwargs):
     if "username" not in request.session:
         request.session["username"] = hex(random.randint(1_000, 999_999_999_999))[2:]
     context = {"username": request.session["username"]}
-    return render(request, "sim/main_page.html", context=context)
+    return render(request, "sim/room_page.html", context=context)

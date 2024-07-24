@@ -8,8 +8,8 @@ from .auctions import *
 class SimConsumer(AsyncWebsocketConsumer):
     room_id: str
     room_group_id: str
+    connection_counter: int = 0
     sim: Auction = EnglishAuction([], set())
-    users: set[str] = set()
 
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
@@ -19,12 +19,16 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
         await self.accept()
+        self.connection_counter += 1
 
     async def disconnect(self, code: int):
         await self.channel_layer.group_discard(
             self.room_id,
             self.channel_name,
         )
+        self.connection_counter -= 1
+        if self.connection_counter == 0:
+            self.sim = EnglishAuction([], set())
 
     async def receive(
         self, text_data: str | None = None, bytes_data: bytes | None = None

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulation Waiting Room</title>
+</head>
+<body>
+    <form id="sim_options">
+        <fieldset id="admin_only_lock"> <!-- Disables the fields, only enabled if user is the admin -->
+            <label for="room_type">Room Type:</label>
+            <select id="room_type" name="room_type">
+                <option value="dutch">Dutch Auction</option>
+                <option value="english">English Auction</option>
+                <option value="FPSB">First Price Sealed Bid Auction</option>
+                <option value="SPSB">Second Price Sealed Bid Auction</option>
+                <option value="CDA">Continuous Double Auction</option>
+            </select>
+
+            <label for="asset">Asset being auctioned:</label>
+            <input id="asset" type="text" name="asset">
+            <label for="time">Countdown length:</label>
+            <input id="time" type="number" name="time">
+            <label for="starting_money">Starting money:</label>
+            <input id="starting_money" type="number" name="starting_money">
+
+            <div id="optional_sim_settings">
+                <label for="starting_bid">Starting bid:</label>
+                <input id="starting_bid" type="number" name="starting_bid">
+            </div>
+        </fieldset>
+
+        <script>
+            document.getElementById("room_type").addEventListener("change",
+                function() {
+                    const parent = document.getElementById("optional_sim_settings");
+                    const val = document.getElementById("room_type").value;
+
+                    if (val == "dutch") {
+                        parent.innerHTML = `
+                            <label for="starting_bid">Starting bid:</label>
+                            <input id="starting_bid" type="number" name="starting_bid">
+                        `;
+                    } else if (val == "english") {
+                        parent.innerHTML = `
+                        `;
+                    } else if (val == "FPSB") {
+                        parent.innerHTML = `
+                        `;
+                    } else if (val == "SPSB") {
+                        parent.innerHTML = `
+                        `;
+                    } else if (val == "CDA") {
+                        parent.innerHTML = `
+                        `;
+                    }
+                }
+            );
+        </script>
+    </form>
+
+
+</body>
+</html>
