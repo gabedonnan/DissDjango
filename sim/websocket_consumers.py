@@ -10,9 +10,18 @@ class SimConsumer(AsyncWebsocketConsumer):
     room_group_id: str
     connection_counter: int = 0
     sim: Auction = EnglishAuction([], set())
+    query_params: dict = None
 
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
+
+        if self.query_params is None:
+            self.query_params = {
+                elem.split("=")[0]: elem.split("=")[1]
+                for elem in self.scope["query_string"].decode("utf-8").split("&")
+            }
+
+        print(self.query_params)
 
         await self.channel_layer.group_add(
             self.room_id,
@@ -36,7 +45,7 @@ class SimConsumer(AsyncWebsocketConsumer):
         # Format {username: ..., message: {...}}
         parsed_data = json.loads(text_data)
 
-        # By default most server interactions will not cause a broadcast to connected browsers
+        # By default, most server interactions will not cause a broadcast to connected browsers
         broadcast_msg = False
 
         # Interpret json data from web client
@@ -53,29 +62,35 @@ class SimConsumer(AsyncWebsocketConsumer):
             if self.sim.auctioneer is None:
                 self.sim.auctioneer = username
 
+                if self.query_params is not None:
+                    # parse initial page arguments to augment auction
+                    if "room_type" in self.query_params and self.query_params["room_type"] not in ["", None]:
+                        room_type = self.query_params["room_type"]
+
+                        match room_type:
+                            case "english":
+                                self.sim = EnglishAuction([], set())
+                            case "dutch":
+                                self.sim = DutchAuction([], set())
+                            case "FPSB":
+                                self.sim = FirstPriceSealedBidAuction([], set())
+                            case "SPSB":
+                                self.sim = SecondPriceSealedBidAuction([], set())
+                            case "CDA":
+                                self.sim = ContinuousDoubleAuction([], set())
+
+                    if "time" in self.query_params and self.query_params["time"] not in ["", None]:
+                        self.sim.time_difference = self.query_params["time"]
+
+                    if "starting_money" in self.query_params and self.query_params["starting_money"] not in ["", None]:
+                        self.sim.asset_range = self.query_params["starting_money"].split(",")
+
+                    if "starting_bid" in self.query_params and self.query_params["starting_bid"] not in ["", None]:
+                        self.sim.auction_price = self.query_params["starting_bid"]
+                else:
+                    print("Something's gone wrong!! Descriptive message innit")
+
             self.sim.add_user(username)
-
-        if username == self.sim.auctioneer:
-            if "rooom_type" in message:
-                room_type = message["room_type"]
-                cur_users = self.sim.users
-
-                match room_type:
-                    case "english":
-                        self.sim = EnglishAuction([], set())
-                    case "dutch":
-                        self.sim = DutchAuction([], set())
-                    case "FPSB":
-                        self.sim = FirstPriceSealedBidAuction([], set())
-                    case "SPSB":
-                        self.sim = SecondPriceSealedBidAuction([], set())
-                    case "CDA":
-                        self.sim = ContinuousDoubleAuction([], set())
-
-                self.sim.users = cur_users
-
-            if "timer" in message:
-                self.sim.time_difference = message["timer"]
 
         if "update_auction" in message:
             auction_updated = False

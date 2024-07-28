@@ -41,5 +41,17 @@ def simulation_page_cda(request, *args, **kwargs):
 def main_page(request, *args, **kwargs):
     if "username" not in request.session:
         request.session["username"] = hex(random.randint(1_000, 999_999_999_999))[2:]
-    context = {"username": request.session["username"]}
-    return render(request, "sim/room_page.html", context=context)
+
+    room_name = "b"  # Get the room name here
+
+    print(request.get_full_path())
+
+    if kwargs == {}:
+        context = {"username": request.session["username"]}
+        return render(request, "sim/room_page.html", context=context)
+    elif "room_type" in kwargs:
+        match kwargs["room_type"]:
+            case "dutch":
+                return redirect(f"dutch/{room_name}")
+            case "english":
+                return simulation_page_english(request, *args, **kwargs)

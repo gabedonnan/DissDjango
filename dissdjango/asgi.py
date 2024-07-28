@@ -29,4 +29,4 @@ application = ProtocolTypeRouter(
     }
 )
 
-ASGI_APPLICATION = 'dissdjango.asgi.application'
+ASGI_APPLICATION = "dissdjango.asgi.application"

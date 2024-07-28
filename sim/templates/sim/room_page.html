@@ -16,10 +16,13 @@
                 <option value="CDA">Continuous Double Auction</option>
             </select>
 
+            <br>
             <label for="asset">Asset being auctioned:</label>
             <input id="asset" type="text" name="asset">
+            <br>
             <label for="time">Countdown length:</label>
             <input id="time" type="number" name="time">
+            <br>
             <label for="starting_money">Starting money:</label>
             <input id="starting_money" type="number" name="starting_money">
 
@@ -27,9 +30,34 @@
                 <label for="starting_bid">Starting bid:</label>
                 <input id="starting_bid" type="number" name="starting_bid">
             </div>
+
+            <input type="submit" value="Submit">
         </fieldset>
 
         <script>
+            function makeid(length) {
+                // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+                let result = '';
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                const charactersLength = characters.length;
+                let counter = 0;
+                while (counter < length) {
+                  result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                  counter += 1;
+                }
+                return result;
+            }
+
+            function nthIndex(str, pat, n){
+                // https://stackoverflow.com/questions/14480345/how-to-get-the-nth-occurrence-in-a-string
+                var L= str.length, i= -1;
+                while(n-- && i++<L){
+                    i= str.indexOf(pat, i);
+                    if (i < 0) break;
+                }
+                return i;
+            }
+
             document.getElementById("room_type").addEventListener("change",
                 function() {
                     const parent = document.getElementById("optional_sim_settings");
@@ -55,6 +83,21 @@
                     }
                 }
             );
+
+            document.getElementById("sim_options").addEventListener("submit",
+                function(event) {
+                    event.preventDefault();
+
+                    let asset = document.getElementById("asset").value;
+                    let room_type = document.getElementById("room_type").value;
+                    let time = document.getElementById("time").value;
+                    let starting_money = document.getElementById("starting_money").value;
+
+                    // window.location.href = window.location.href.substring(0, nthIndex(window.location.href, "/", 3) + 1) + makeid(5);
+                    window.location.href = "http://127.0.0.1:8000/" + makeid(5) + "/?room_type=" + room_type + "&asset=" + asset + "&time=" + time + "&starting_money=" + starting_money;
+                }
+            );
+
         </script>
     </form>
 

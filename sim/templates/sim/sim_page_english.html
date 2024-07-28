@@ -35,7 +35,7 @@
     </div>
     <script>
       const room_id = window.location.pathname
-      const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id);
+      const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id + "/" + window.location.search);
 
       sim_socket.onopen = function (e) {
         console.log("The connection was setup successfully !");
