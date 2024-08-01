@@ -20,6 +20,7 @@ class AuctionUser:
         self.username = username
         self.assets = {asset: randint(*asset_range) for asset in assets}
         self.money = randint(*money_range)
+
         if len(assets) > 0:
             self.generate_objective()
 
@@ -32,6 +33,7 @@ class AuctionUser:
 class Auction:
     users: dict[str, AuctionUser]
     auctioneer: str | None = None
+    timestamp: int
 
     def __init__(
         self,
@@ -47,6 +49,7 @@ class Auction:
         self.possible_assets = assets
         self.asset_range = asset_range
         self.money_range = money_range
+        self.timestamp = int(time())
 
     def bid(self, *args) -> bool: ...
 
@@ -140,7 +143,7 @@ class EnglishAuction(Auction):
         assets: set[str],
         asset_range: tuple[int, int] = (5, 15),
         money_range: tuple[int, int] = (1000, 2000),
-        timer: int = 100000000000000,  # Default timer is 10 seconds
+        timer: int = 30,  # Default timer is 10 seconds
     ):
         super().__init__(users, assets, asset_range, money_range)
         self.time_difference = timer

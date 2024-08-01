@@ -15,7 +15,10 @@ class SimConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
 
-        if self.query_params is None:
+        if (
+            self.query_params is None
+            and self.scope["query_string"].decode("utf-8") != ""
+        ):
             self.query_params = {
                 elem.split("=")[0]: elem.split("=")[1]
                 for elem in self.scope["query_string"].decode("utf-8").split("&")
@@ -64,7 +67,9 @@ class SimConsumer(AsyncWebsocketConsumer):
 
                 if self.query_params is not None:
                     # parse initial page arguments to augment auction
-                    if "room_type" in self.query_params and self.query_params["room_type"] not in ["", None]:
+                    if "room_type" in self.query_params and self.query_params[
+                        "room_type"
+                    ] not in ["", None]:
                         room_type = self.query_params["room_type"]
 
                         match room_type:
@@ -79,18 +84,37 @@ class SimConsumer(AsyncWebsocketConsumer):
                             case "CDA":
                                 self.sim = ContinuousDoubleAuction([], set())
 
-                    if "time" in self.query_params and self.query_params["time"] not in ["", None]:
+                    if "time" in self.query_params and self.query_params[
+                        "time"
+                    ] not in ["", None]:
                         self.sim.time_difference = self.query_params["time"]
 
-                    if "starting_money" in self.query_params and self.query_params["starting_money"] not in ["", None]:
-                        self.sim.asset_range = self.query_params["starting_money"].split(",")
+                    if "starting_money" in self.query_params and self.query_params[
+                        "starting_money"
+                    ] not in ["", None]:
+                        self.sim.asset_range = self.query_params[
+                            "starting_money"
+                        ].split(",")
 
-                    if "starting_bid" in self.query_params and self.query_params["starting_bid"] not in ["", None]:
+                    if "starting_bid" in self.query_params and self.query_params[
+                        "starting_bid"
+                    ] not in ["", None]:
                         self.sim.auction_price = self.query_params["starting_bid"]
                 else:
                     print("Something's gone wrong!! Descriptive message innit")
 
             self.sim.add_user(username)
+            broadcast_msg = True
+            res["countdown_timer"] = int(
+                (self.sim.timestamp + self.sim.time_difference) - time()
+            )
+            res["max_time"] = self.sim.time_difference
+        elif "register_user" in message and username in self.sim.users:
+            broadcast_msg = True
+            res["countdown_timer"] = int(
+                (self.sim.timestamp + self.sim.time_difference) - time()
+            )
+            res["max_time"] = self.sim.time_difference
 
         if "update_auction" in message:
             auction_updated = False

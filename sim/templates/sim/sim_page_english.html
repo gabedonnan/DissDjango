@@ -25,17 +25,36 @@
       id="id_chat_item_container"
       style="font-size: 20px"
     >
+        <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
+        <p>Current Bid:</p>
         <p id="id_bid_price_display">100</p>
         <br />
         <!--    Bid Number    -->
         <input type="number" id="id_message_send_input" />
-        <button type="submit" id="id_message_send_button">Send Message</button>
+        <button type="submit" id="id_message_send_button">Bid</button>
         <br />
         <br />
     </div>
     <script>
       const room_id = window.location.pathname
       const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id + "/" + window.location.search);
+
+      var auction_finished = false;
+      var timer_interval_id = null;
+      var max_time = null;
+
+      function start_auction_timer(duration, display) {
+         timer_interval_id = setInterval(
+            function () {
+                if (--duration + 1 > 0) {
+                    display.textContent = "Current Time Remaining: " + duration + " Seconds";
+                } else {
+                    display.textContent = "Bidding Finished!";
+                }
+            },
+            1000
+        );
+      };
 
       sim_socket.onopen = function (e) {
         console.log("The connection was setup successfully !");
@@ -66,8 +85,6 @@
           "#id_message_send_input"
         ).value;
 
-        // console.log(JSON.stringify({ message: {update_auction: {messageInput}}, username : "{{request.session.username}}"}));
-
         sim_socket.send(
             JSON.stringify(
                 {
@@ -83,16 +100,33 @@
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
         console.log(data);
-        console.log("HH");
-        // console.log(data.message);
 
         if (data.message.hasOwnProperty("price_update")) {
             var div = document.getElementById("id_bid_price_display");
             div.innerHTML = "£" + data.message.price_update;
-        } else if (data.message.type == "auction_end") {
+            if (timer_interval_id != null) {
+                clearTimeout(timer_interval_id);
+                start_auction_timer(
+                    max_time,
+                    document.getElementById("countdown_timer")
+                );
+                console.log(max_time);
+            }
+        }
+
+        if (data.message.type == "auction_end") {
             // Display auction end screen
-        } else {
-            console.log(e.data)
+        }
+
+        if (data.message.hasOwnProperty("countdown_timer") && timer_interval_id === null) {
+            start_auction_timer(
+                data.message.countdown_timer,
+                document.getElementById("countdown_timer")
+            );
+        }
+
+        if (data.message.hasOwnProperty("max_time") && max_time === null) {
+            max_time = data.message.max_time;
         }
 
       };
