@@ -23,7 +23,7 @@
     <div
       class="chat__item__container"
       id="id_chat_item_container"
-      style="font-size: 20px"
+      style="font-size: 20px; text-align: center;"
     >
         <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
         <p>Current Bid:</p>
@@ -34,6 +34,8 @@
         <button type="submit" id="id_message_send_button">Bid</button>
         <br />
         <br />
+        <p id="profits">Total Profits Made: £0</p>
+        <p id="utility">Current utility price for this asset: £0</p>
     </div>
     <script>
       const room_id = window.location.pathname
@@ -42,6 +44,8 @@
       var auction_finished = false;
       var timer_interval_id = null;
       var max_time = null;
+      var profit = 0;
+      var utility_price = 0;
 
       function start_auction_timer(duration, display) {
          timer_interval_id = setInterval(
@@ -112,6 +116,11 @@
                 );
                 console.log(max_time);
             }
+        }
+
+        if (data.message.hasOwnProperty("set_price")) {
+            var div = document.getElementById("id_bid_price_display");
+            div.innerHTML = "£" + data.message.set_price;
         }
 
         if (data.message.type == "auction_end") {
