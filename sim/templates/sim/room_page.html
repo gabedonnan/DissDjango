@@ -31,6 +31,23 @@
                 <input id="starting_bid" type="number" name="starting_bid">
             </div>
 
+            <br>
+            <label for="limit_distribution">Select distribution for participant limit prices:</label>
+            <select id="limit_distribution">
+                <option value="uniform">Uniform Distribution</option>
+                <option value="normal">Normal Distribution</option>
+            </select>
+
+            <br>
+            <label for="limit_min">Low end for uniform distribution or centre of normal distribution:</label>
+            <input id="limit_min" type="number" name="limit_min">
+
+            <br>
+            <label for="limit_max">High end for uniform distribution or scale of normal distribution:</label>
+            <input id="limit_max" type="number" name="limit_max">
+
+            <br>
+            <br>
             <input type="submit" value="Submit">
         </fieldset>
 
@@ -94,9 +111,12 @@
                     let room_type = document.getElementById("room_type").value;
                     let time = document.getElementById("time").value;
                     let starting_money = document.getElementById("starting_money").value;
+                    let limit_distribution = document.getElementById("limit_distribution").value;
+                    let limit_min = document.getElementById("limit_min").value;
+                    let limit_max = document.getElementById("limit_max").value;
 
                     // window.location.href = window.location.href.substring(0, nthIndex(window.location.href, "/", 3) + 1) + makeid(5);
-                    window.location.href = "http://127.0.0.1:8000/" + makeid(5) + "/?room_type=" + room_type + "&asset=" + asset + "&time=" + time + "&starting_money=" + starting_money;
+                    window.location.href = "http://127.0.0.1:8000/" + room_type + "/" + makeid(5) + "/?&asset=" + asset + "&time=" + time + "&starting_money=" + starting_money + "&limit_distribution_function=" + limit_distribution + "&limit_min=" + limit_min + "&limit_max=" + limit_max;
                 }
             );
 

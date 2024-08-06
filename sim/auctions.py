@@ -119,7 +119,7 @@ class EnglishAuction(Auction):
         timer: int = 30,  # Default timer is 10 seconds
     ):
         super().__init__(users, limit_price_distribution, money_range)
-        self.time_difference = timer
+        self.time_difference = int(timer)
 
     def bid(self, account: str, amount: int) -> bool:
         try:
@@ -174,7 +174,7 @@ class FirstPriceSealedBidAuction(Auction):
         timer: int = 90,  # Default timer is 90 seconds
     ):
         super().__init__(users, limit_price_distribution, money_range)
-        self.time_difference = timer
+        self.time_difference = int(timer)
 
     def bid(self, account: str, amount: int) -> bool:
         if account != self.auctioneer and account in self.users.keys():

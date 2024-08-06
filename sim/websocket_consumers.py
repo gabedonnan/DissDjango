@@ -14,9 +14,11 @@ class SimConsumer(AsyncWebsocketConsumer):
     connection_counter: int = 0
     sim: Auction = EnglishAuction([], set())
     query_params: dict = None
+    room_type: str = "dutch"
 
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
+        self.room_type = self.scope["path"][4:self.scope["path"][4:].find("/") + 4]
 
         if (
             self.query_params is None
@@ -25,9 +27,9 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.query_params = {
                 elem.split("=")[0]: elem.split("=")[1]
                 for elem in self.scope["query_string"].decode("utf-8").split("&")
+                if len(elem) > 0
             }
-
-        print(self.query_params)
+            print(self.query_params)
 
         await self.channel_layer.group_add(
             self.room_id,
@@ -71,81 +73,15 @@ class SimConsumer(AsyncWebsocketConsumer):
 
                     if self.query_params is not None:
                         # parse initial page arguments to augment auction
-                        if "room_type" in self.query_params and self.query_params[
-                            "room_type"
-                        ] not in ["", None]:
-                            room_type = self.query_params["room_type"]
+                        room_type = self.room_type
 
-                            if (
-                                "limit_distribution_function" in self.query_params
-                                and "limit_min" in self.query_params
-                                and "limit_max" in self.query_params
-                            ):
-                                self.query_params["limit_min"] = int(self.query_params["limit_min"])
-                                self.query_params["limit_max"] = int(self.query_params["limit_max"])
+                        limit_price_distribution = await self.get_limit_distribution()
 
-                                match self.query_params["limit_price_distribution"]:
-                                    case "uniform":
-                                        limit_price_distribution = (
-                                            random.uniform,
-                                            self.query_params["limit_min"],
-                                            self.query_params["limit_max"],
-                                        )
-                                    case "normal":
-                                        limit_price_distribution = (
-                                            np.random.normal,
-                                            self.query_params["limit_min"],
-                                            self.query_params["limit_max"],
-                                        )
-                                    case _:
-                                        limit_price_distribution = (
-                                            random.uniform,
-                                            self.query_params["limit_min"],
-                                            self.query_params["limit_max"],
-                                        )
-                            else:
-                                limit_price_distribution = (
-                                    self.sim.limit_price_distribution
-                                )
+                        print("LIMIT", limit_price_distribution)
 
-                            match room_type:
-                                case "english":
-                                    self.sim = EnglishAuction(
-                                        [], limit_price_distribution
-                                    )
-                                case "dutch":
-                                    self.sim = DutchAuction(
-                                        [], limit_price_distribution
-                                    )
-                                case "FPSB":
-                                    self.sim = FirstPriceSealedBidAuction(
-                                        [], limit_price_distribution
-                                    )
-                                case "SPSB":
-                                    self.sim = SecondPriceSealedBidAuction(
-                                        [], limit_price_distribution
-                                    )
-                                case "CDA":
-                                    self.sim = ContinuousDoubleAuction(
-                                        [], limit_price_distribution
-                                    )
+                        await self.set_room_type(limit_price_distribution, room_type)
 
-                        if "time" in self.query_params and self.query_params[
-                            "time"
-                        ] not in ["", None]:
-                            self.sim.time_difference = self.query_params["time"]
-
-                        if "starting_money" in self.query_params and self.query_params[
-                            "starting_money"
-                        ] not in ["", None]:
-                            self.sim.asset_range = self.query_params[
-                                "starting_money"
-                            ].split(",")
-
-                        if "starting_bid" in self.query_params and self.query_params[
-                            "starting_bid"
-                        ] not in ["", None]:
-                            self.sim.auction_price = self.query_params["starting_bid"]
+                        await self.set_initial_params_from_query()
                     else:
                         print("Something's gone wrong!! Descriptive message innit")
 
@@ -153,52 +89,14 @@ class SimConsumer(AsyncWebsocketConsumer):
 
             broadcast_msg = True
             res["countdown_timer"] = int(
-                (self.sim.timestamp + self.sim.time_difference) - time()
+                (self.sim.timestamp + int(self.sim.time_difference)) - time()
             )
             res["max_time"] = self.sim.time_difference
             res["set_price"] = self.sim.auction_price
             res["limit_price"] = self.sim.users[username].limit_price
 
         if "update_auction" in message:
-            auction_updated = False
-            # Instruction should be a tuple (instruction, [args])
-            # Each instruction should return a boolean based on whether the auction has been updated
-            # This can be used to determine whether a message should be broadcast
-            instruction = message["update_auction"]
-            if instruction["method"] == "ask" and hasattr(self.sim, "ask"):
-                auction_updated = self.sim.ask(username, instruction["price"])
-            elif instruction["method"] == "bid" and hasattr(self.sim, "bid"):
-                if isinstance(self.sim, DutchAuction):
-                    # Dutch auctions do not require a provided price to bid
-                    auction_updated = self.sim.bid(username)
-                else:
-                    auction_updated = self.sim.bid(username, instruction["price"])
-            elif (
-                instruction["method"] == "initial_offer"
-                and username == self.sim.auctioneer
-                and hasattr(self.sim, "auctioneer_initial_offer")
-            ):
-                auction_updated = self.sim.auctioneer_initial_offer(
-                    username,
-                    instruction["asset"],
-                    instruction["price"],
-                    instruction["quantity"],
-                )
-            elif (
-                instruction["method"] == "update_offer"
-                and username == self.sim.auctioneer
-                and hasattr(self.sim, "auctioneer_update_offer")
-            ):
-                auction_updated = self.sim.auctioneer_update_offer(
-                    username, instruction["price"]
-                )
-
-            # if auction updated, make sure message is broadcast
-            # But dont remove previous message broadcast approvals
-            broadcast_msg = auction_updated or broadcast_msg
-
-            if auction_updated and hasattr(self.sim, "auction_price"):
-                res["price_update"] = self.sim.auction_price
+            broadcast_msg = await self.try_update_auction(broadcast_msg, message, res, username)
 
         if broadcast_msg:
             print(res)
@@ -211,6 +109,119 @@ class SimConsumer(AsyncWebsocketConsumer):
                     "username": username,
                 },
             )
+
+    async def try_update_auction(self, broadcast_msg, message, res, username):
+        auction_updated = False
+        # Instruction should be a tuple (instruction, [args])
+        # Each instruction should return a boolean based on whether the auction has been updated
+        # This can be used to determine whether a message should be broadcast
+        instruction = message["update_auction"]
+        if instruction["method"] == "ask" and hasattr(self.sim, "ask"):
+            auction_updated = self.sim.ask(username, instruction["price"])
+        elif instruction["method"] == "bid" and hasattr(self.sim, "bid"):
+            if isinstance(self.sim, DutchAuction):
+                # Dutch auctions do not require a provided price to bid
+                auction_updated = self.sim.bid(username)
+            else:
+                auction_updated = self.sim.bid(username, instruction["price"])
+        elif (
+                instruction["method"] == "initial_offer"
+                and username == self.sim.auctioneer
+                and hasattr(self.sim, "auctioneer_initial_offer")
+        ):
+            auction_updated = self.sim.auctioneer_initial_offer(
+                username,
+                instruction["asset"],
+                instruction["price"],
+                instruction["quantity"],
+            )
+        elif (
+                instruction["method"] == "update_offer"
+                and username == self.sim.auctioneer
+                and hasattr(self.sim, "auctioneer_update_offer")
+        ):
+            auction_updated = self.sim.auctioneer_update_offer(
+                username, instruction["price"]
+            )
+        # if auction updated, make sure message is broadcast
+        # But dont remove previous message broadcast approvals
+        broadcast_msg = auction_updated or broadcast_msg
+        if auction_updated and hasattr(self.sim, "auction_price"):
+            res["price_update"] = self.sim.auction_price
+        return broadcast_msg
+
+    async def set_initial_params_from_query(self):
+        if "time" in self.query_params and self.query_params[
+            "time"
+        ] not in ["", None]:
+            self.sim.time_difference = self.query_params["time"]
+        if "starting_money" in self.query_params and self.query_params[
+            "starting_money"
+        ] not in ["", None]:
+            self.sim.asset_range = self.query_params[
+                "starting_money"
+            ].split(",")
+        if "starting_bid" in self.query_params and self.query_params[
+            "starting_bid"
+        ] not in ["", None]:
+            self.sim.auction_price = self.query_params["starting_bid"]
+
+    async def get_limit_distribution(self):
+        if (
+                "limit_distribution_function" in self.query_params
+                and "limit_min" in self.query_params
+                and "limit_max" in self.query_params
+        ):
+            self.query_params["limit_min"] = int(self.query_params["limit_min"])
+            self.query_params["limit_max"] = int(self.query_params["limit_max"])
+
+            match self.query_params["limit_price_distribution"]:
+                case "uniform":
+                    limit_price_distribution = (
+                        random.uniform,
+                        self.query_params["limit_min"],
+                        self.query_params["limit_max"],
+                    )
+                case "normal":
+                    limit_price_distribution = (
+                        np.random.normal,
+                        self.query_params["limit_min"],
+                        self.query_params["limit_max"],
+                    )
+                case _:
+                    limit_price_distribution = (
+                        random.uniform,
+                        self.query_params["limit_min"],
+                        self.query_params["limit_max"],
+                    )
+        else:
+            limit_price_distribution = (
+                random.uniform, 100, 1000
+            )
+        return limit_price_distribution
+
+    async def set_room_type(self, limit_price_distribution, room_type):
+        match room_type:
+            case "english":
+                self.sim = EnglishAuction(
+                    [], limit_price_distribution
+                )
+            case "dutch":
+                self.sim = DutchAuction(
+                    [], limit_price_distribution
+                )
+            case "FPSB":
+                self.sim = FirstPriceSealedBidAuction(
+                    [], limit_price_distribution
+                )
+            case "SPSB":
+                self.sim = SecondPriceSealedBidAuction(
+                    [], limit_price_distribution
+                )
+            case "CDA":
+                self.sim = ContinuousDoubleAuction(
+                    [], limit_price_distribution
+                )
 
     async def send_message(self, event):
         await self.send(
