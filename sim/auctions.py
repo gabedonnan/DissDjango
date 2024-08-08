@@ -43,15 +43,18 @@ class Auction:
 
     def bid(self, *args) -> bool: ...
 
-    def add_user(self, username):
+    def add_user(self, username, limit_price_distribution):
         if username not in self.users:
             self.users[username] = AuctionUser(
-                username, self.limit_price_distribution, self.money_range
+                username, limit_price_distribution, self.money_range
             )
 
     def remove_user(self, username):
         if username in self.users:
             del self.users[username]
+
+    def __str__(self):
+        return f"{type(self)},, {self.users},, {self.auctioneer},, {self.limit_price_distribution}"
 
 
 class DutchAuction(Auction):
@@ -78,7 +81,7 @@ class DutchAuction(Auction):
                 auctioneer.money += self.auction_price
                 # Transfer assets to buyer
                 current_user.profits += self.auction_price - current_user.limit_price
-                auctioneer.profits -= current_user.limit_price - self.auction_quantity
+                auctioneer.profits -= auctioneer.limit_price - self.auction_price
 
                 # Switch to a new auctioneer
                 self.auctioneer = choice(list(self.users.keys()))
@@ -129,11 +132,10 @@ class EnglishAuction(Auction):
 
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
-            print(current_user.money)
             # Can a user pay for the asset
             if (
                 self.timestamp is None
-                or self.timestamp + self.time_difference >= time()
+                or self.timestamp + int(self.time_difference) >= time()
             ) and current_user.money >= amount:
                 if self.auction_price is None or amount >= self.auction_price:
                     # Transfer money from buyer to auctioneer

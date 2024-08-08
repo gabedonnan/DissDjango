@@ -1,5 +1,6 @@
 import json
 import random
+import asyncio
 
 import numpy as np
 
@@ -8,28 +9,33 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from .auctions import *
 
 
+# All auction instances are stored in this global variable and keyed by room ID
+# This is because to serve multiple users an arbitrary number of SimConsumer objects will be created without my control
+auction_instances: dict[str, Auction | None] = {
+
+}
+
+
 class SimConsumer(AsyncWebsocketConsumer):
     room_id: str
     room_group_id: str
     connection_counter: int = 0
-    sim: Auction = EnglishAuction([], set())
+    sim: Auction = DutchAuction([], (random.uniform, 0, 100))
     query_params: dict = None
-    room_type: str = "dutch"
+    room_type: str
 
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_type = self.scope["path"][4:self.scope["path"][4:].find("/") + 4]
 
-        if (
-            self.query_params is None
-            and self.scope["query_string"].decode("utf-8") != ""
-        ):
-            self.query_params = {
-                elem.split("=")[0]: elem.split("=")[1]
-                for elem in self.scope["query_string"].decode("utf-8").split("&")
-                if len(elem) > 0
-            }
-            print(self.query_params)
+        if self.room_id not in auction_instances:
+            auction_instances[self.room_id] = None
+        else:
+            # A created room should never be none, reject connection if so
+            if auction_instances[self.room_id] is None:
+                await self.close()
+            else:
+                self.sim = auction_instances[self.room_id]
 
         await self.channel_layer.group_add(
             self.room_id,
@@ -44,6 +50,7 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
         self.connection_counter -= 1
+        print("DISCO TIME")
         if self.connection_counter == 0:
             self.sim = EnglishAuction([], (random.uniform, 100, 1000))
 
@@ -66,26 +73,32 @@ class SimConsumer(AsyncWebsocketConsumer):
         # Room ID should be equal to the username code of the admin user
         # I.e. If username = room id the admin is making changes
 
+        if (
+            self.query_params is None
+            and "window_search" in message
+            and message["window_search"] != ""
+        ):
+            self.query_params = {
+                elem.split("=")[0]: elem.split("=")[1]
+                for elem in message["window_search"][1:].split("&")
+                if len(elem) > 0
+            }
+
         if "register_user" in message:
             if username not in self.sim.users:
-                if self.sim.auctioneer is None:
+                if self.sim.auctioneer is None and self.query_params is not None:
                     self.sim.auctioneer = username
 
-                    if self.query_params is not None:
-                        # parse initial page arguments to augment auction
-                        room_type = self.room_type
+                    # parse initial page arguments to augment auction
+                    room_type = self.room_type
 
-                        limit_price_distribution = await self.get_limit_distribution()
+                    limit_price_distribution = await self.get_limit_distribution()
 
-                        print("LIMIT", limit_price_distribution)
+                    await self.set_room_type(limit_price_distribution, room_type)
 
-                        await self.set_room_type(limit_price_distribution, room_type)
+                    await self.set_initial_params_from_query()
 
-                        await self.set_initial_params_from_query()
-                    else:
-                        print("Something's gone wrong!! Descriptive message innit")
-
-                self.sim.add_user(username)
+                self.sim.add_user(username, self.sim.limit_price_distribution)
 
             broadcast_msg = True
             res["countdown_timer"] = int(
@@ -148,6 +161,7 @@ class SimConsumer(AsyncWebsocketConsumer):
         broadcast_msg = auction_updated or broadcast_msg
         if auction_updated and hasattr(self.sim, "auction_price"):
             res["price_update"] = self.sim.auction_price
+            res["profit_update"] = [self.sim.users[username].profits, username]
         return broadcast_msg
 
     async def set_initial_params_from_query(self):
@@ -168,14 +182,14 @@ class SimConsumer(AsyncWebsocketConsumer):
 
     async def get_limit_distribution(self):
         if (
-                "limit_distribution_function" in self.query_params
+                "limit_distribution" in self.query_params
                 and "limit_min" in self.query_params
                 and "limit_max" in self.query_params
         ):
             self.query_params["limit_min"] = int(self.query_params["limit_min"])
             self.query_params["limit_max"] = int(self.query_params["limit_max"])
 
-            match self.query_params["limit_price_distribution"]:
+            match self.query_params["limit_distribution"]:
                 case "uniform":
                     limit_price_distribution = (
                         random.uniform,
@@ -222,6 +236,8 @@ class SimConsumer(AsyncWebsocketConsumer):
                 self.sim = ContinuousDoubleAuction(
                     [], limit_price_distribution
                 )
+
+        auction_instances[self.room_id] = self.sim
 
     async def send_message(self, event):
         await self.send(

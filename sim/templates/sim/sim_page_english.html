@@ -39,7 +39,8 @@
     </div>
     <script>
       const room_id = window.location.pathname
-      const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id + "/" + window.location.search);
+      const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id);
+      console.log("ws://" + window.location.host + "/ws" + room_id);
 
       var auction_finished = false;
       var timer_interval_id = null;
@@ -65,7 +66,8 @@
         sim_socket.send(JSON.stringify(
                 {
                     message: {
-                        register_user: true
+                        register_user: true,
+                        window_search: window.location.search
                     },
                     username : "{{request.session.username}}"
                 }
@@ -115,6 +117,11 @@
                     document.getElementById("countdown_timer")
                 );
                 console.log(max_time);
+            }
+
+            if (data.message.hasOwnProperty("profit_update") && data.message.profit_update[1] == "{{request.session.username}}") {
+                var profit_div = document.getElementById("profits");
+                profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[0];
             }
         }
 
