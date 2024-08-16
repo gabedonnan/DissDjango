@@ -105,7 +105,6 @@
 
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        console.log(data);
 
         if (data.message.hasOwnProperty("price_update")) {
             var div = document.getElementById("id_bid_price_display");
@@ -116,7 +115,6 @@
                     max_time,
                     document.getElementById("countdown_timer")
                 );
-                console.log(max_time);
             }
 
             if (data.message.hasOwnProperty("profit_update") && data.message.profit_update[1] == "{{request.session.username}}") {
@@ -128,6 +126,11 @@
         if (data.message.hasOwnProperty("set_price")) {
             var div = document.getElementById("id_bid_price_display");
             div.innerHTML = "£" + data.message.set_price;
+        }
+
+        if (data.message.hasOwnProperty("limit_price")) {
+            var div = document.getElementById("utility");
+            div.innerHTML = "Current utility price for this asset: £" + data.message.limit_price;
         }
 
         if (data.message.type == "auction_end") {
