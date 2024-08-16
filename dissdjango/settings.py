@@ -57,7 +57,7 @@ ROOT_URLCONF = "dissdjango.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "sim/templates"],
+        "DIRS": [str(BASE_DIR / "sim/templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -81,7 +81,7 @@ ASGI_APPLICATION = "dissdjango.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": str(BASE_DIR / "db.sqlite3"),
     }
 }
 
@@ -120,7 +120,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = os.path.abspath(BASE_DIR / "sim/templates/sim")
+STATIC_URL = str(BASE_DIR / "sim/templates/sim")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
