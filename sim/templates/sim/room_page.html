@@ -116,7 +116,7 @@
                     let limit_max = document.getElementById("limit_max").value;
 
                     // window.location.href = window.location.href.substring(0, nthIndex(window.location.href, "/", 3) + 1) + makeid(5);
-                    window.location.href = "http://127.0.0.1:8000/" + room_type + "/" + makeid(5) + "/?&asset=" + asset + "&time=" + time + "&starting_money=" + starting_money + "&limit_distribution_function=" + limit_distribution + "&limit_min=" + limit_min + "&limit_max=" + limit_max;
+                    window.location.href = window.location.host + room_type + "/" + makeid(5) + "/?&asset=" + asset + "&time=" + time + "&starting_money=" + starting_money + "&limit_distribution_function=" + limit_distribution + "&limit_min=" + limit_min + "&limit_max=" + limit_max;
                 }
             );
 
