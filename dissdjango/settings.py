@@ -26,8 +26,11 @@ SECRET_KEY = "JaPZ4@?2w9%&BScjr_[phN"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['sea-lion-app-iaazj.ondigitalocean.app', '127.0.0.1']
+ALLOWED_HOSTS = ['sea-lion-app-iaazj.ondigitalocean.app']
 
+CORS_ALLOWED_ORIGINS = [
+    "https://sea-lion-app-iaazj.ondigitalocean.app",
+]
 
 # Application definition
 
@@ -122,8 +125,7 @@ SECURE_HSTS_SECONDS = 3600
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'
-SECURE_BROWSER_XSS_FILTER = True
-
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

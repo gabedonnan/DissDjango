@@ -25,7 +25,6 @@ class SimConsumer(AsyncWebsocketConsumer):
     room_type: str
 
     async def connect(self):
-        print("CONNECTING")
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_type = self.scope["path"][4:self.scope["path"][4:].find("/") + 4]
 
