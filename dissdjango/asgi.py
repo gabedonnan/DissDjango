@@ -20,8 +20,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dissdjango.settings")
 
 django_asgi_app = get_asgi_application()
 
-django.setup()
-
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
@@ -31,4 +29,4 @@ application = ProtocolTypeRouter(
     }
 )
 
-ASGI_APPLICATION = "dissdjango.asgi.application"
+# gunicorn --worker-tmp-dir /dev/shm dissdjango.asgi
