@@ -86,19 +86,19 @@ class SimConsumer(AsyncWebsocketConsumer):
             }
 
         if "register_user" in message:
+            if sim is None and self.query_params is not None:
+                # parse initial page arguments to augment auction
+                room_type = self.room_type
+
+                limit_price_distribution = await self.get_limit_distribution()
+
+                await self.set_room_type(limit_price_distribution, room_type)
+
+                await self.set_initial_params_from_query()
+
+                sim.auctioneer = username
+
             if username not in sim.users:
-                if sim is None and self.query_params is not None:
-                    # parse initial page arguments to augment auction
-                    room_type = self.room_type
-
-                    limit_price_distribution = await self.get_limit_distribution()
-
-                    await self.set_room_type(limit_price_distribution, room_type)
-
-                    await self.set_initial_params_from_query()
-
-                    sim.auctioneer = username
-
                 sim.add_user(username, sim.limit_price_distribution)
 
             broadcast_msg = True
