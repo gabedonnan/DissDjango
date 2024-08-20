@@ -73,7 +73,12 @@
     </div>
     <script>
       const room_id = window.location.pathname
-      const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id);
+      if (room_id.endsWith("/")) {
+        const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id);
+      } else {
+        const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id + "/");
+      }
+
       console.log(room_id);
 
       var auction_finished = false;
