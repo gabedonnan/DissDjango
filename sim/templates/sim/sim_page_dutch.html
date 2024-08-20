@@ -7,9 +7,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        #bid_history {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #bid_history div {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #e6e6e6;
+            border-radius: 4px;
+            word-wrap: break-word;
+        }
+
+        #id_message_send_input {
+            width: 90vw;
+            height: 60px;
+            padding: 15px;
+            margin: 10px auto;
+            box-sizing: border-box;
+            display: block;
+            font-size: 1.2em;
+            font-family: Arial, sans-serif;
+        }
+
+        #id_message_send_input:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    </style>
 </head>
 <body>
     <center>
+        <h1>Auction Type: Dutch</h1>
         <h1>Your username is {{request.session.username}}</h1>
     </center>
     <br>
@@ -23,22 +56,68 @@
     <div
       class="chat__item__container"
       id="id_chat_item_container"
-      style="font-size: 20px"
+      style="font-size: 20px; text-align: center;"
     >
+        <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
+        <p>Current Price:</p>
         <p id="id_bid_price_display">100</p>
         <br />
         <!--    Bid Number    -->
         <input type="number" id="id_message_send_input" />
-        <button type="submit" id="id_message_send_button">Send Message</button>
+        <button type="submit" id="id_message_send_button">Bid</button>
         <br />
         <br />
+        <p id="profits">Total Profits Made: £0</p>
+        <p id="utility">Current utility price for this asset: £0</p>
+        <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
     </div>
     <script>
       const room_id = window.location.pathname
-      const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id);
+      const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id);
+      console.log(window.location.host);
+
+      var auction_finished = false;
+      var timer_interval_id = null;
+      var max_time = null;
+      var profit = 0;
+      var utility_price = 0;
+
+      function add_message_to_top(message) {
+        // Get the message container
+        const message_container = document.getElementById('bid_history');
+
+        // Create a new div element for the message
+        const new_message = document.createElement('div');
+        new_message.textContent = message;
+
+        // Insert the new message at the top
+        message_container.insertBefore(new_message, message_container.firstChild);
+      }
+
+      function start_auction_timer(duration, display) {
+         timer_interval_id = setInterval(
+            function () {
+                if (--duration + 1 > 0) {
+                    display.textContent = "Current Time Remaining: " + duration + " Seconds";
+                } else {
+                    display.textContent = "Bidding Finished!";
+                }
+            },
+            1000
+        );
+      };
 
       sim_socket.onopen = function (e) {
         console.log("The connection was setup successfully !");
+        sim_socket.send(JSON.stringify(
+                {
+                    message: {
+                        register_user: true,
+                        window_search: window.location.search
+                    },
+                    username : "{{request.session.username}}"
+                }
+            ))
       };
 
       sim_socket.onclose = function (e) {
@@ -58,8 +137,6 @@
           "#id_message_send_input"
         ).value;
 
-        console.log(JSON.stringify({ message: {update_auction: {messageInput}}, username : "{{request.session.username}}"}));
-
         sim_socket.send(
             JSON.stringify(
                 {
@@ -74,14 +151,50 @@
 
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        console.log(data);
-        if (data.message.type == "price_update") {
+
+        if (data.message.hasOwnProperty("price_update")) {
             var div = document.getElementById("id_bid_price_display");
-            div.innerHTML = "£" + data.message.price;
-        } else if (data.message.type == "auction_end") {
+            div.innerHTML = "£" + data.message.price_update;
+            if (timer_interval_id != null) {
+                clearTimeout(timer_interval_id);
+                start_auction_timer(
+                    max_time,
+                    document.getElementById("countdown_timer")
+                );
+            }
+
+            // Update running log of bids
+            add_message_to_top(data.username + " : " + data.message.price_update);
+
+            if (data.message.hasOwnProperty("profit_update") && data.message.profit_update[1] == "{{request.session.username}}") {
+                var profit_div = document.getElementById("profits");
+                profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[0];
+            }
+        }
+
+        if (data.message.hasOwnProperty("set_price")) {
+            var div = document.getElementById("id_bid_price_display");
+            div.innerHTML = "£" + data.message.set_price;
+        }
+
+        if (data.message.hasOwnProperty("limit_price") && data.username == "{{request.session.username}}") {
+            var div = document.getElementById("utility");
+            div.innerHTML = "Current utility price for this asset: £" + data.message.limit_price;
+        }
+
+        if (data.message.type == "auction_end") {
             // Display auction end screen
-        } else {
-            console.log(e.data)
+        }
+
+        if (data.message.hasOwnProperty("countdown_timer") && timer_interval_id === null) {
+            start_auction_timer(
+                data.message.countdown_timer,
+                document.getElementById("countdown_timer")
+            );
+        }
+
+        if (data.message.hasOwnProperty("max_time") && max_time === null) {
+            max_time = data.message.max_time;
         }
 
       };

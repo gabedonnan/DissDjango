@@ -51,9 +51,9 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
         self.connection_counter -= 1
-        print("DISCO TIME")
         if self.connection_counter == 0:
-            self.sim = EnglishAuction([], (random.uniform, 100, 1000))
+            del auction_instances[self.room_id]
+            self.sim = DutchAuction([], (random.uniform, 0, 100))
 
     async def receive(
         self, text_data: str | None = None, bytes_data: bytes | None = None
