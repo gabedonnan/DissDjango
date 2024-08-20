@@ -130,14 +130,14 @@ class EnglishAuction(Auction):
         except ValueError:
             return False
 
-        if account != self.auctioneer and account in self.users.keys():
+        if account != self.auctioneer and account in self.users.keys() and account != self.auction_leader:
             current_user = self.users[account]
             # Can a user pay for the asset
             if (
                 self.timestamp is None
                 or self.timestamp + int(self.time_difference) >= time()
             ) and current_user.money >= amount:
-                if self.auction_price is None or amount >= self.auction_price:
+                if self.auction_price is None or amount > self.auction_price:
                     # Transfer money from buyer to auctioneer
                     self.auction_price = amount
                     self.auction_leader = self.users[account]
