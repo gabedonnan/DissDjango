@@ -20,6 +20,14 @@ class AuctionUser:
         self.limit_price = int(dist(min_range, max_range))
         self.money = randint(*money_range)
 
+    def __eq__(self, other):
+        if isinstance(other, AuctionUser):
+            return self.username == other.username
+        elif isinstance(other, str):
+            return self.username == other
+        else:
+            raise ValueError(f"Invalid Comparison Between: AuctionUser and {type(other)}")
+
 
 class Auction:
     users: dict[str, AuctionUser]
@@ -130,7 +138,7 @@ class EnglishAuction(Auction):
         except ValueError:
             return False
 
-        if account != self.auctioneer and account in self.users.keys() and account != self.auction_leader:
+        if account != self.auctioneer and account in self.users.keys() and self.users[account] != self.auction_leader:
             current_user = self.users[account]
             # Can a user pay for the asset
             if (
