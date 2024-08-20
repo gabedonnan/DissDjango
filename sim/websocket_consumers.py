@@ -87,8 +87,7 @@ class SimConsumer(AsyncWebsocketConsumer):
 
         if "register_user" in message:
             if username not in self.sim.users:
-                print(self.sim.auctioneer, auction_instances[self.scope["url_route"]["kwargs"]["room_name"]].auctioneer ,self.query_params)
-                if self.sim.auctioneer is None and self.query_params is not None:
+                if auction_instances[self.scope["url_route"]["kwargs"]["room_name"]] is None and self.query_params is not None:
                     self.sim.auctioneer = username
 
                     # parse initial page arguments to augment auction
