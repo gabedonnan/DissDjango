@@ -73,11 +73,7 @@
     </div>
     <script>
       const room_id = window.location.pathname
-      if (room_id.endsWith("/")) {
-        const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id);
-      } else {
-        const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id + "/");
-      }
+      const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id + room_id.endsWith("/") ? "" : "/");
 
       console.log(room_id);
 
