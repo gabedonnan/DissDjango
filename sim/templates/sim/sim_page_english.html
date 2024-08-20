@@ -176,7 +176,7 @@
             div.innerHTML = "£" + data.message.set_price;
         }
 
-        if (data.message.hasOwnProperty("limit_price")) {
+        if (data.message.hasOwnProperty("limit_price") && data.username == "{{request.session.username}}") {
             var div = document.getElementById("utility");
             div.innerHTML = "Current utility price for this asset: £" + data.message.limit_price;
         }

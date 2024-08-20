@@ -58,6 +58,8 @@ class SimConsumer(AsyncWebsocketConsumer):
     async def receive(
         self, text_data: str | None = None, bytes_data: bytes | None = None
     ):
+        room_name = self.scope["url_route"]["kwargs"]["room_name"]
+
         # Format {username: ..., message: {...}}
         parsed_data = json.loads(text_data)
 
@@ -87,7 +89,7 @@ class SimConsumer(AsyncWebsocketConsumer):
 
         if "register_user" in message:
             if username not in self.sim.users:
-                if auction_instances[self.scope["url_route"]["kwargs"]["room_name"]] is None and self.query_params is not None:
+                if auction_instances[room_name] is None and self.query_params is not None:
                     self.sim.auctioneer = username
 
                     # parse initial page arguments to augment auction
