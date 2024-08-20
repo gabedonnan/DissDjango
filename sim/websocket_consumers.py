@@ -20,7 +20,6 @@ class SimConsumer(AsyncWebsocketConsumer):
     room_id: str
     room_group_id: str
     connection_counter: int = 0
-    sim: Auction = DutchAuction([], (random.uniform, 0, 100))
     query_params: dict = None
     room_type: str
 
@@ -36,8 +35,6 @@ class SimConsumer(AsyncWebsocketConsumer):
             # A created room should never be none, reject connection if so
             if auction_instances[self.room_id] is None:
                 await self.close()
-            else:
-                self.sim = auction_instances[self.room_id]
 
         await self.channel_layer.group_add(
             self.room_id,
@@ -54,12 +51,12 @@ class SimConsumer(AsyncWebsocketConsumer):
         self.connection_counter -= 1
         if self.connection_counter == 0:
             del auction_instances[self.room_id]
-            self.sim = DutchAuction([], (random.uniform, 0, 100))
 
     async def receive(
         self, text_data: str | None = None, bytes_data: bytes | None = None
     ):
         room_name = self.scope["url_route"]["kwargs"]["room_name"]
+        sim = auction_instances[room_name]
 
         # Format {username: ..., message: {...}}
         parsed_data = json.loads(text_data)
@@ -89,10 +86,8 @@ class SimConsumer(AsyncWebsocketConsumer):
             }
 
         if "register_user" in message:
-            if username not in self.sim.users:
-                if auction_instances[room_name] is None and self.query_params is not None:
-                    self.sim.auctioneer = username
-
+            if username not in sim.users:
+                if sim is None and self.query_params is not None:
                     # parse initial page arguments to augment auction
                     room_type = self.room_type
 
@@ -102,15 +97,17 @@ class SimConsumer(AsyncWebsocketConsumer):
 
                     await self.set_initial_params_from_query()
 
-                self.sim.add_user(username, self.sim.limit_price_distribution)
+                    sim.auctioneer = username
+
+                sim.add_user(username, sim.limit_price_distribution)
 
             broadcast_msg = True
             res["countdown_timer"] = int(
-                (self.sim.timestamp + int(self.sim.time_difference)) - time()
+                (sim.timestamp + int(sim.time_difference)) - time()
             )
-            res["max_time"] = self.sim.time_difference
-            res["set_price"] = self.sim.auction_price
-            res["limit_price"] = self.sim.users[username].limit_price
+            res["max_time"] = sim.time_difference
+            res["set_price"] = sim.auction_price
+            res["limit_price"] = sim.users[username].limit_price
 
         if "update_auction" in message:
             broadcast_msg = await self.try_update_auction(broadcast_msg, message, res, username)
@@ -129,24 +126,25 @@ class SimConsumer(AsyncWebsocketConsumer):
 
     async def try_update_auction(self, broadcast_msg, message, res, username):
         auction_updated = False
+        sim = auction_instances[self.room_id]
         # Instruction should be a tuple (instruction, [args])
         # Each instruction should return a boolean based on whether the auction has been updated
         # This can be used to determine whether a message should be broadcast
         instruction = message["update_auction"]
-        if instruction["method"] == "ask" and hasattr(self.sim, "ask"):
-            auction_updated = self.sim.ask(username, instruction["price"])
-        elif instruction["method"] == "bid" and hasattr(self.sim, "bid"):
-            if isinstance(self.sim, DutchAuction):
+        if instruction["method"] == "ask" and hasattr(sim, "ask"):
+            auction_updated = sim.ask(username, instruction["price"])
+        elif instruction["method"] == "bid" and hasattr(sim, "bid"):
+            if isinstance(sim, DutchAuction):
                 # Dutch auctions do not require a provided price to bid
-                auction_updated = self.sim.bid(username)
+                auction_updated = sim.bid(username)
             else:
-                auction_updated = self.sim.bid(username, instruction["price"])
+                auction_updated = sim.bid(username, instruction["price"])
         elif (
                 instruction["method"] == "initial_offer"
-                and username == self.sim.auctioneer
-                and hasattr(self.sim, "auctioneer_initial_offer")
+                and username == sim.auctioneer
+                and hasattr(sim, "auctioneer_initial_offer")
         ):
-            auction_updated = self.sim.auctioneer_initial_offer(
+            auction_updated = sim.auctioneer_initial_offer(
                 username,
                 instruction["asset"],
                 instruction["price"],
@@ -154,35 +152,36 @@ class SimConsumer(AsyncWebsocketConsumer):
             )
         elif (
                 instruction["method"] == "update_offer"
-                and username == self.sim.auctioneer
-                and hasattr(self.sim, "auctioneer_update_offer")
+                and username == sim.auctioneer
+                and hasattr(sim, "auctioneer_update_offer")
         ):
-            auction_updated = self.sim.auctioneer_update_offer(
+            auction_updated = sim.auctioneer_update_offer(
                 username, instruction["price"]
             )
         # if auction updated, make sure message is broadcast
         # But dont remove previous message broadcast approvals
         broadcast_msg = auction_updated or broadcast_msg
-        if auction_updated and hasattr(self.sim, "auction_price"):
-            res["price_update"] = self.sim.auction_price
-            res["profit_update"] = [self.sim.users[username].profits, username]
+        if auction_updated and hasattr(sim, "auction_price"):
+            res["price_update"] = sim.auction_price
+            res["profit_update"] = [sim.users[username].profits, username]
         return broadcast_msg
 
     async def set_initial_params_from_query(self):
+        sim = auction_instances[self.room_id]
         if "time" in self.query_params and self.query_params[
             "time"
         ] not in ["", None]:
-            self.sim.time_difference = self.query_params["time"]
+            sim.time_difference = self.query_params["time"]
         if "starting_money" in self.query_params and self.query_params[
             "starting_money"
         ] not in ["", None]:
-            self.sim.asset_range = self.query_params[
+            sim.asset_range = self.query_params[
                 "starting_money"
             ].split(",")
         if "starting_bid" in self.query_params and self.query_params[
             "starting_bid"
         ] not in ["", None]:
-            self.sim.auction_price = self.query_params["starting_bid"]
+            sim.auction_price = self.query_params["starting_bid"]
 
     async def get_limit_distribution(self):
         if (
@@ -219,29 +218,30 @@ class SimConsumer(AsyncWebsocketConsumer):
         return limit_price_distribution
 
     async def set_room_type(self, limit_price_distribution, room_type):
+        sim = None
         match room_type:
             case "english":
-                self.sim = EnglishAuction(
+                sim = EnglishAuction(
                     [], limit_price_distribution
                 )
             case "dutch":
-                self.sim = DutchAuction(
+                sim = DutchAuction(
                     [], limit_price_distribution
                 )
             case "FPSB":
-                self.sim = FirstPriceSealedBidAuction(
+                sim = FirstPriceSealedBidAuction(
                     [], limit_price_distribution
                 )
             case "SPSB":
-                self.sim = SecondPriceSealedBidAuction(
+                sim = SecondPriceSealedBidAuction(
                     [], limit_price_distribution
                 )
             case "CDA":
-                self.sim = ContinuousDoubleAuction(
+                sim = ContinuousDoubleAuction(
                     [], limit_price_distribution
                 )
 
-        auction_instances[self.room_id] = self.sim
+        auction_instances[self.room_id] = sim
 
     async def send_message(self, event):
         await self.send(
