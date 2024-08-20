@@ -96,6 +96,7 @@ class SimConsumer(AsyncWebsocketConsumer):
 
                 await self.set_initial_params_from_query()
 
+                sim = auction_instances[room_name]
                 sim.auctioneer = username
 
             if username not in sim.users:
