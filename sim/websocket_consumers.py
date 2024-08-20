@@ -87,6 +87,7 @@ class SimConsumer(AsyncWebsocketConsumer):
 
         if "register_user" in message:
             if username not in self.sim.users:
+                print(self.sim.auctioneer, self.query_params)
                 if self.sim.auctioneer is None and self.query_params is not None:
                     self.sim.auctioneer = username
 
