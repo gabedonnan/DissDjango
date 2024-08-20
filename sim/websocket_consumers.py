@@ -27,6 +27,7 @@ class SimConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_type = self.scope["path"][4:self.scope["path"][4:].find("/") + 4]
+        print("room type", self.room_type)
 
         if self.room_id not in auction_instances:
             auction_instances[self.room_id] = None
