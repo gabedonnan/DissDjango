@@ -25,8 +25,10 @@ class AuctionUser:
             return self.username == other.username
         elif isinstance(other, str):
             return self.username == other
+        elif other is None:
+            return False
         else:
-            raise ValueError(f"Invalid Comparison Between: AuctionUser and {type(other)}")
+            raise TypeError(f"Invalid Equality Comparison Between: AuctionUser and {type(other)}")
 
 
 class Auction:
