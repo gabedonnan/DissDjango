@@ -74,7 +74,7 @@
     <script>
       const room_id = window.location.pathname
       const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id);
-      console.log(window.location.host);
+      console.log(room_id);
 
       var auction_finished = false;
       var timer_interval_id = null;
