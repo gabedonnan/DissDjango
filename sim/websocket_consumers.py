@@ -49,8 +49,8 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
         self.connection_counter -= 1
-        if self.connection_counter == 0:
-            del auction_instances[self.room_id]
+        # if self.connection_counter == 0:
+        #     del auction_instances[self.room_id]
 
     async def receive(
         self, text_data: str | None = None, bytes_data: bytes | None = None
