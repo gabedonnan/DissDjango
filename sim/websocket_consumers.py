@@ -116,6 +116,10 @@ class SimConsumer(AsyncWebsocketConsumer):
         if "update_auction" in message:
             broadcast_msg = await self.try_update_auction(broadcast_msg, message, res, username)
 
+        if "download_history" in message and hasattr(sim, "bid_history"):
+            broadcast_msg = True
+            res["download_history"] = sim.bid_history
+
         if broadcast_msg:
             print(res)
             # Should only be done if message is state-updating

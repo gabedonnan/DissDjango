@@ -123,6 +123,8 @@ class EnglishAuction(Auction):
     # Unix timestamp of last bid to calculate whether the auction has finished
     timestamp: float | None = None
     time_difference: int | None = None
+    # List in order of bids, with sub tuples containing bidding username, bid amount and the bidding user's limit price
+    bid_history: list[tuple[str, int, int]]
 
     def __init__(
         self,
@@ -148,6 +150,7 @@ class EnglishAuction(Auction):
                 or self.timestamp + int(self.time_difference) >= time()
             ) and current_user.money >= amount:
                 if self.auction_price is None or amount > self.auction_price:
+                    self.bid_history.append((account, amount, current_user.limit_price))
                     # Transfer money from buyer to auctioneer
                     self.auction_price = amount
                     self.auction_leader = self.users[account]

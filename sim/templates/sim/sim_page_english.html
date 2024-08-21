@@ -70,6 +70,8 @@
         <p id="profits">Total Profits Made: £0</p>
         <p id="utility">Current utility price for this asset: £0</p>
         <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
+        <br />
+        <button id="download_history">Download Auction History</button>
     </div>
     <script>
       const room_id = window.location.pathname
@@ -145,6 +147,19 @@
                         update_auction: {method: "bid", price: messageInput}
                     },
                     username : "{{request.session.username}}"
+                }
+            )
+        );
+      };
+
+      document.querySelector("#download_history").onclick = function (e) {
+        sim_socket.send(
+            JSON.stringify(
+                {
+                    message: {
+                        download_history: true
+                    },
+                    username: "{{request.session.username}}"
                 }
             )
         );
