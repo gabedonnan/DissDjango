@@ -24,7 +24,7 @@
 
         #id_message_send_input {
             width: 90vw;
-            height: 60px;
+            height: 80px;
             padding: 15px;
             margin: 10px auto;
             box-sizing: border-box;
@@ -113,14 +113,14 @@
       sim_socket.onopen = function (e) {
         console.log("The connection was setup successfully !");
         sim_socket.send(JSON.stringify(
-                {
-                    message: {
-                        register_user: true,
-                        window_search: window.location.search
-                    },
-                    username : "{{request.session.username}}"
-                }
-            ))
+            {
+                message: {
+                    register_user: true,
+                    window_search: window.location.search
+                },
+                username : "{{request.session.username}}"
+            }
+        ));
       };
 
       sim_socket.onclose = function (e) {
@@ -140,16 +140,32 @@
           "#id_message_send_input"
         ).value;
 
-        sim_socket.send(
-            JSON.stringify(
-                {
-                    message: {
-                        update_auction: {method: "bid", price: messageInput}
-                    },
-                    username : "{{request.session.username}}"
-                }
-            )
-        );
+        if (document.getElementById("countdown_timer").textContent == "Bidding Finished!") {
+            // IF the browser thinks the countdown timer is finished then send off an "is finished" check to the server
+            sim_socket.send(
+                JSON.stringify(
+                    {
+                        message: {
+                            end_auction: true
+                        },
+                        username : "{{request.session.username}}"
+                    }
+                )
+            );
+        } else {
+            sim_socket.send(
+                JSON.stringify(
+                    {
+                        message: {
+                            update_auction: {method: "bid", price: messageInput}
+                        },
+                        username : "{{request.session.username}}"
+                    }
+                )
+            );
+        }
+
+
       };
 
       document.querySelector("#download_history").onclick = function (e) {

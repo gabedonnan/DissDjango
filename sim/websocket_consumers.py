@@ -120,6 +120,16 @@ class SimConsumer(AsyncWebsocketConsumer):
             broadcast_msg = True
             res["download_history"] = sim.bid_history
 
+        if "end_auction" in message and hasattr(sim, "bidding_finished"):
+            if sim.bidding_finished():
+                broadcast_msg = True
+
+                # Not all auctions work in this way
+                if hasattr(sim, "auction_leader") and hasattr(sim, "auction_price"):
+                    res["profit_update"] = sim.auction_leader.limit_price - sim.auction_price
+
+                res["auction_end"] = True
+
         if broadcast_msg:
             print(res)
             # Should only be done if message is state-updating

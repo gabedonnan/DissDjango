@@ -161,6 +161,13 @@ class EnglishAuction(Auction):
 
         return False
 
+    def check_finished(self) -> bool:
+        # Returns a boolean indicating whether the auction is finished, in this case only time can end it.
+        return (
+            self.timestamp is not None
+            and self.timestamp + int(self.time_difference) < time()
+        )
+
     def auctioneer_initial_offer(self, account: str, price: int) -> bool:
         # Checking only that auction asset is none should be sufficient
         if account == self.auctioneer:
