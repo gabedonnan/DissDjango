@@ -1,6 +1,7 @@
 import json
 import random
 import asyncio
+from collections import defaultdict
 
 import numpy as np
 
@@ -14,6 +15,8 @@ from .auctions import *
 auction_instances: dict[str, Auction | None] = {
 
 }
+
+connection_counters: dict[str, int] = defaultdict(int)
 
 
 class SimConsumer(AsyncWebsocketConsumer):
@@ -41,16 +44,16 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
         await self.accept()
-        self.connection_counter += 1
+        connection_counters[self.room_id] += 1
 
     async def disconnect(self, code: int):
         await self.channel_layer.group_discard(
             self.room_id,
             self.channel_name,
         )
-        self.connection_counter -= 1
-        # if self.connection_counter == 0:
-        #     del auction_instances[self.room_id]
+        connection_counters[self.room_id] -= 1
+        if connection_counters[self.room_id] == 0:
+            del auction_instances[self.room_id]
 
     async def receive(
         self, text_data: str | None = None, bytes_data: bytes | None = None
