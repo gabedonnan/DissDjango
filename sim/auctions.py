@@ -134,6 +134,7 @@ class EnglishAuction(Auction):
         timer: int = 30,  # Default timer is 10 seconds
     ):
         super().__init__(users, limit_price_distribution, money_range)
+        self.bid_history = []
         self.time_difference = int(timer)
 
     def bid(self, account: str, amount: int) -> bool:
