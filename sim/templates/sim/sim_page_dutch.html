@@ -155,16 +155,30 @@
                 )
             );
         } else {
-            sim_socket.send(
-                JSON.stringify(
-                    {
-                        message: {
-                            update_auction: {method: "bid", price: messageInput}
-                        },
-                        username : "{{request.session.username}}"
-                    }
-                )
-            );
+
+            if (is_admin) {
+                sim_socket.send(
+                    JSON.stringify(
+                        {
+                            message: {
+                                update_auction: {method: "update_offer", price: messageInput}
+                            },
+                            username : "{{request.session.username}}"
+                        }
+                    )
+                );
+            } else {
+                sim_socket.send(
+                    JSON.stringify(
+                        {
+                            message: {
+                                update_auction: {method: "bid", price: null}
+                            },
+                            username : "{{request.session.username}}"
+                        }
+                    )
+                );
+            }
         }
 
 
@@ -187,9 +201,14 @@
         const data = JSON.parse(e.data);
 
         if (data.message.hasOwnProperty("set_admin")) {
-            // Change the webpage for auctions in which hte admin operates differently
-            is_admin = true;
-
+            if (data.message.set_admin == true) {
+                is_admin = true;
+            } else {
+                // Change the webpage for auctions in which hte admin operates differently
+                is_admin = false;
+                var send_box = document.getElementById("id_message_send_input");
+                send_box.style.display = 'none';
+            }
         }
 
         if (data.message.hasOwnProperty("price_update")) {
