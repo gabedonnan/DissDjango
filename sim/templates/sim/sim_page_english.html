@@ -72,6 +72,7 @@
         <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
         <br />
         <button id="download_history">Download Auction History</button>
+        <p id="users_connected">1 Connected User(s)</p>
     </div>
     <script>
       const room_id = window.location.pathname
@@ -202,6 +203,11 @@
                 var profit_div = document.getElementById("profits");
                 profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[0];
             }
+        }
+
+        if (data.message.hasOwnProperty("update_user_count")) {
+            var user_counter = document.getElementById("users_connected");
+            user_counter.innerHTML = data.message.update_user_count + " Connected User(s)";
         }
 
         if (data.message.hasOwnProperty("set_price")) {

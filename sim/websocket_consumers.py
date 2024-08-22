@@ -110,6 +110,7 @@ class SimConsumer(AsyncWebsocketConsumer):
             res["max_time"] = sim.time_difference
             res["set_price"] = sim.auction_price
             res["limit_price"] = sim.users[username].limit_price
+            res["update_user_count"] = connection_counters[self.room_id]
 
         if "update_auction" in message:
             broadcast_msg = await self.try_update_auction(
