@@ -28,7 +28,9 @@ class AuctionUser:
         elif other is None:
             return False
         else:
-            raise TypeError(f"Invalid Equality Comparison Between: AuctionUser and {type(other)}")
+            raise TypeError(
+                f"Invalid Equality Comparison Between: AuctionUser and {type(other)}"
+            )
 
 
 class Auction:
@@ -143,7 +145,11 @@ class EnglishAuction(Auction):
         except ValueError:
             return False
 
-        if account != self.auctioneer and account in self.users.keys() and self.users[account] != self.auction_leader:
+        if (
+            account != self.auctioneer
+            and account in self.users.keys()
+            and self.users[account] != self.auction_leader
+        ):
             current_user = self.users[account]
             # Can a user pay for the asset
             if (
@@ -168,15 +174,6 @@ class EnglishAuction(Auction):
             and self.timestamp + int(self.time_difference) < time()
         )
 
-    def auctioneer_initial_offer(self, account: str, price: int) -> bool:
-        # Checking only that auction asset is none should be sufficient
-        if account == self.auctioneer:
-            # We need to ensure the user actually has the correct amount of the asset to sell
-            self.auction_price = price
-            self.timestamp = time()
-            return True
-        return False
-
 
 class FirstPriceSealedBidAuction(Auction):
     auction_price: int | None = None
@@ -200,36 +197,26 @@ class FirstPriceSealedBidAuction(Auction):
         self.time_difference = int(timer)
 
     def bid(self, account: str, amount: int) -> bool:
+        # Can a user pay for the asset
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
+            self.num_bids += (
+                1  # Always increase the number of bids even if it isnt the highest
+            )
             # Can a user pay for the asset
             if (
-                current_user.money >= amount >= self.auction_price
-                and self.timestamp + self.time_difference <= time()
-            ):
+                self.timestamp is None
+                or self.timestamp + int(self.time_difference) >= time()
+            ) and current_user.money >= amount > self.auction_price:
                 # Transfer money from buyer to auctioneer
                 self.auction_price = amount
-                self.auction_leader = self.users[account]
-                self.num_bids += 1
-                # Broadcast this change to all participants of the room
-                return True
+                self.auction_leader = current_user
 
-        if (
+        return (
             self.num_bids >= len(self.users)
-            or self.timestamp + self.time_difference <= time()
-        ):
-            ...
-
-        return False
-
-    def auctioneer_initial_offer(self, account: str, price: int) -> bool:
-        # Checking only that auction asset is none should be sufficient
-        if account == self.auctioneer:
-            self.auction_price = price
-            self.timestamp = time()
-            self.num_bids = 0
-            return True
-        return False
+            or self.timestamp + self.time_difference < time()
+        )
+        # Only broadcast if all users have bid or the time is up (i.e. auction over)
 
 
 class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
@@ -237,32 +224,35 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
     auction_price: deque = deque([0])
 
     def bid(self, account: str, amount: int) -> bool:
+        # Can a user pay for the asset
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
+            self.num_bids += (
+                1  # Always increase the number of bids even if it isnt the highest
+            )
             # Can a user pay for the asset
             if (
-                current_user.money >= amount >= self.auction_price[0]
-                and self.timestamp + self.time_difference <= time()
-            ):
-                # Transfer money from buyer to auctioneer
-                self.auction_price.appendleft(amount)
-                self.auction_leader.appendleft(self.users[account])
+                self.timestamp is None
+                or self.timestamp + int(self.time_difference) >= time()
+            ) and current_user.money >= amount:
+                # The highest price is on the right
+                if len(self.auction_price) != 0 and amount > self.auction_price[-1]:
+                    # The new bid is the highest
+                    self.auction_price.popleft()
+                    self.auction_price.append(amount)
+                    self.auction_leader.popleft()
+                    self.auction_leader.append(account)
+                elif len(self.auction_price) > 1 and amount > self.auction_price[0]:
+                    # The new bid is the second highest
+                    self.auction_price.popleft()
+                    self.auction_price.appendleft(amount)
+                    self.auction_leader.popleft()
+                    self.auction_leader.appendleft(account)
 
-                if len(self.auction_leader) >= 2:
-                    self.auction_leader.pop()
-                    self.auction_price.pop()
-
-                self.num_bids += 1
-                # Broadcast this change to all participants of the room
-                return True
-
-        if (
-            self.num_bids >= len(self.users)
-            or self.timestamp + self.time_difference <= time()
-        ):
-            ...
-
-        return False
-
+        return (
+                self.num_bids >= len(self.users)
+                or self.timestamp + self.time_difference < time()
+        )
+        # Only broadcast if all users have bid or the time is up (i.e. auction over)
 
 class ContinuousDoubleAuction(Auction): ...

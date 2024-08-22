@@ -12,9 +12,7 @@ from .auctions import *
 
 # All auction instances are stored in this global variable and keyed by room ID
 # This is because to serve multiple users an arbitrary number of SimConsumer objects will be created without my control
-auction_instances: dict[str, Auction | None] = {
-
-}
+auction_instances: dict[str, Auction | None] = {}
 
 connection_counters: dict[str, int] = defaultdict(int)
 
@@ -28,7 +26,7 @@ class SimConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_name"]
-        self.room_type = self.scope["path"][4:self.scope["path"][4:].find("/") + 4]
+        self.room_type = self.scope["path"][4 : self.scope["path"][4:].find("/") + 4]
 
         print("All auctions: ", auction_instances)
 
@@ -114,7 +112,9 @@ class SimConsumer(AsyncWebsocketConsumer):
             res["limit_price"] = sim.users[username].limit_price
 
         if "update_auction" in message:
-            broadcast_msg = await self.try_update_auction(broadcast_msg, message, res, username)
+            broadcast_msg = await self.try_update_auction(
+                broadcast_msg, message, res, username
+            )
 
         if "download_history" in message and hasattr(sim, "bid_history"):
             broadcast_msg = True
@@ -126,7 +126,9 @@ class SimConsumer(AsyncWebsocketConsumer):
 
                 # Not all auctions work in this way
                 if hasattr(sim, "auction_leader") and hasattr(sim, "auction_price"):
-                    res["profit_update"] = sim.auction_leader.limit_price - sim.auction_price
+                    res["profit_update"] = (
+                        sim.auction_leader.limit_price - sim.auction_price
+                    )
 
                 res["auction_end"] = True
 
@@ -158,9 +160,9 @@ class SimConsumer(AsyncWebsocketConsumer):
             else:
                 auction_updated = sim.bid(username, instruction["price"])
         elif (
-                instruction["method"] == "initial_offer"
-                and username == sim.auctioneer
-                and hasattr(sim, "auctioneer_initial_offer")
+            instruction["method"] == "initial_offer"
+            and username == sim.auctioneer
+            and hasattr(sim, "auctioneer_initial_offer")
         ):
             auction_updated = sim.auctioneer_initial_offer(
                 username,
@@ -169,9 +171,9 @@ class SimConsumer(AsyncWebsocketConsumer):
                 instruction["quantity"],
             )
         elif (
-                instruction["method"] == "update_offer"
-                and username == sim.auctioneer
-                and hasattr(sim, "auctioneer_update_offer")
+            instruction["method"] == "update_offer"
+            and username == sim.auctioneer
+            and hasattr(sim, "auctioneer_update_offer")
         ):
             auction_updated = sim.auctioneer_update_offer(
                 username, instruction["price"]
@@ -186,16 +188,12 @@ class SimConsumer(AsyncWebsocketConsumer):
 
     async def set_initial_params_from_query(self):
         sim = auction_instances[self.room_id]
-        if "time" in self.query_params and self.query_params[
-            "time"
-        ] not in ["", None]:
+        if "time" in self.query_params and self.query_params["time"] not in ["", None]:
             sim.time_difference = self.query_params["time"]
         if "starting_money" in self.query_params and self.query_params[
             "starting_money"
         ] not in ["", None]:
-            sim.asset_range = self.query_params[
-                "starting_money"
-            ].split(",")
+            sim.asset_range = self.query_params["starting_money"].split(",")
         if "starting_bid" in self.query_params and self.query_params[
             "starting_bid"
         ] not in ["", None]:
@@ -203,9 +201,9 @@ class SimConsumer(AsyncWebsocketConsumer):
 
     async def get_limit_distribution(self):
         if (
-                "limit_distribution" in self.query_params
-                and "limit_min" in self.query_params
-                and "limit_max" in self.query_params
+            "limit_distribution" in self.query_params
+            and "limit_min" in self.query_params
+            and "limit_max" in self.query_params
         ):
             self.query_params["limit_min"] = int(self.query_params["limit_min"])
             self.query_params["limit_max"] = int(self.query_params["limit_max"])
@@ -230,34 +228,22 @@ class SimConsumer(AsyncWebsocketConsumer):
                         self.query_params["limit_max"],
                     )
         else:
-            limit_price_distribution = (
-                random.uniform, 100, 1000
-            )
+            limit_price_distribution = (random.uniform, 100, 1000)
         return limit_price_distribution
 
     async def set_room_type(self, limit_price_distribution, room_type):
         sim = None
         match room_type:
             case "english":
-                sim = EnglishAuction(
-                    [], limit_price_distribution
-                )
+                sim = EnglishAuction([], limit_price_distribution)
             case "dutch":
-                sim = DutchAuction(
-                    [], limit_price_distribution
-                )
+                sim = DutchAuction([], limit_price_distribution)
             case "FPSB":
-                sim = FirstPriceSealedBidAuction(
-                    [], limit_price_distribution
-                )
+                sim = FirstPriceSealedBidAuction([], limit_price_distribution)
             case "SPSB":
-                sim = SecondPriceSealedBidAuction(
-                    [], limit_price_distribution
-                )
+                sim = SecondPriceSealedBidAuction([], limit_price_distribution)
             case "CDA":
-                sim = ContinuousDoubleAuction(
-                    [], limit_price_distribution
-                )
+                sim = ContinuousDoubleAuction([], limit_price_distribution)
 
         auction_instances[self.room_id] = sim
 
