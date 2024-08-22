@@ -92,7 +92,7 @@ class DutchAuction(Auction):
                 current_user.money -= self.auction_price
                 auctioneer.money += self.auction_price
                 # Transfer assets to buyer
-                current_user.profits += self.auction_price - current_user.limit_price
+                current_user.profits += current_user.limit_price - self.auction_price
                 auctioneer.profits -= auctioneer.limit_price - self.auction_price
 
                 # Switch to a new auctioneer

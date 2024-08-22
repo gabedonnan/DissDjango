@@ -209,9 +209,15 @@
             // Update running log of bids
             add_message_to_top(data.username + " : " + data.message.price_update);
 
-            if (data.message.hasOwnProperty("profit_update") && data.message.profit_update[1] == "{{request.session.username}}") {
+            if (data.message.hasOwnProperty("profit_update")) {
                 var profit_div = document.getElementById("profits");
-                profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[0];
+                // Always sent out as a 2 by 2 array, one containing the auctioneer's profit and one containing the bidder's
+                if (data.message.profit_update[0][1] == "{{request.session.username}}") {
+                    profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[0][0];
+                } else if (data.message.profit_update[1][1] == "{{request.session.username}}") {
+                    profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[1][0];
+                }
+
             }
         }
 

@@ -197,7 +197,10 @@ class SimConsumer(AsyncWebsocketConsumer):
         broadcast_msg = auction_updated or broadcast_msg
         if auction_updated and hasattr(sim, "auction_price"):
             res["price_update"] = sim.auction_price
-            res["profit_update"] = [sim.users[username].profits, username]
+            res["profit_update"] = [
+                [sim.users[username].profits, username],
+                [sim.users[sim.auctioneer].profits, sim.auctioneer]
+            ]
         return broadcast_msg
 
     async def set_initial_params_from_query(self):
