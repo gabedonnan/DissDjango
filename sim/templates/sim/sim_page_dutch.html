@@ -196,7 +196,7 @@ document.querySelector("#download_history").onclick = function(e) {
 sim_socket.onmessage = function(e) {
     const data = JSON.parse(e.data);
 
-    if (data.message.hasOwnProperty("set_admin")) {
+    if (data.message.hasOwnProperty("set_admin") && data.username == "{{request.session.username}}") {
         if (data.message.set_admin == true) {
             is_admin = true;
         } else {
