@@ -85,6 +85,7 @@
       var max_time = null;
       var profit = 0;
       var utility_price = 0;
+      var is_admin = false;  // Changing this just changes how your page looks, doesnt give you admin permissions, sorry
 
       function add_message_to_top(message) {
         // Get the message container
@@ -185,6 +186,15 @@
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
 
+        if (data.message.hasOwnProperty("set_admin")) {
+            // Change the webpage for auctions in which hte admin operates differently
+            is_admin = true;
+            var send_box = document.getElementById("id_message_send_input");
+            var send_button = document.getElementById("id_message_send_button");
+            send_box.style.display = 'none';
+            send_button.style.display = 'none';
+        }
+
         if (data.message.hasOwnProperty("price_update")) {
             var div = document.getElementById("id_bid_price_display");
             div.innerHTML = "£" + data.message.price_update;
@@ -249,9 +259,7 @@
             max_time = data.message.max_time;
         }
 
-        if (data.message.hasOwnProperty("set_admin")) {
-            // Change the webpage for auctions in which hte admin operates differently
-        }
+
 
       };
     </script>
