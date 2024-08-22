@@ -94,6 +94,8 @@ class DutchAuction(Auction):
                 # Transfer assets to buyer
                 current_user.profits += current_user.limit_price - self.auction_price
                 auctioneer.profits -= auctioneer.limit_price - self.auction_price
+
+                self.auction_price = None
                 return True
         return False
 
