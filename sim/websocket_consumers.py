@@ -50,6 +50,16 @@ class SimConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
         connection_counters[self.room_id] -= 1
+
+        await self.channel_layer.group_send(  # Tell everyone a user has disconnected
+            self.room_id,
+            {
+                "type": "send_message",
+                "message": {"update_user_count": connection_counters[self.room_id]},
+                "username": "disco_admin",
+            },
+        )
+
         if connection_counters[self.room_id] == 0:
             del auction_instances[self.room_id]
 
