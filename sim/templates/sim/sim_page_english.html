@@ -186,7 +186,7 @@
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
 
-        if (data.message.hasOwnProperty("set_admin")) {
+        if (data.message.hasOwnProperty("set_admin") && data.message.set_admin == true) {
             // Change the webpage for auctions in which hte admin operates differently
             is_admin = true;
             var send_box = document.getElementById("id_message_send_input");
