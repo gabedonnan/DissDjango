@@ -102,16 +102,13 @@ class DutchAuction(Auction):
                 return True
         return False
 
-    def auctioneer_initial_offer(self, account: str, price: int) -> bool:
-        # Checking only that auction asset is none should be sufficient
-        if account == self.auctioneer:
-            # We need to ensure the user actually has the correct amount of the asset to sell
-            self.auction_price = price
-            return True
-        return False
-
     def auctioneer_update_offer(self, account: str, price: int) -> bool:
-        if account == self.auctioneer and 0 < price < self.auction_price:
+        try:
+            price = int(price)
+        except ValueError:
+            return False
+
+        if account == self.auctioneer and (self.auction_price is None or 0 < price < self.auction_price):
             self.auction_price = price
             return True
         return False
