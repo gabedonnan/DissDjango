@@ -218,14 +218,14 @@ class SimConsumer(AsyncWebsocketConsumer):
 
     async def get_limit_distribution(self):
         if (
-            "limit_distribution" in self.query_params
+            "limit_distribution_function" in self.query_params
             and "limit_min" in self.query_params
             and "limit_max" in self.query_params
         ):
             self.query_params["limit_min"] = int(self.query_params["limit_min"])
             self.query_params["limit_max"] = int(self.query_params["limit_max"])
 
-            match self.query_params["limit_distribution"]:
+            match self.query_params["limit_distribution_function"]:
                 case "uniform":
                     limit_price_distribution = (
                         random.uniform,
