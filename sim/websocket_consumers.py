@@ -109,6 +109,7 @@ class SimConsumer(AsyncWebsocketConsumer):
 
                 sim = auction_instances[room_name]
                 sim.auctioneer = username
+                res["set_admin"] = True
 
             if username not in sim.users:
                 sim.add_user(username, sim.limit_price_distribution)
@@ -121,6 +122,8 @@ class SimConsumer(AsyncWebsocketConsumer):
             res["set_price"] = sim.auction_price
             res["limit_price"] = sim.users[username].limit_price
             res["update_user_count"] = connection_counters[self.room_id]
+            res["set_admin"] = "set_admin" in res  # False unless it is already True
+            # The set admin is to tell webpages to render differently if the user is the room admin
 
         if "update_auction" in message:
             broadcast_msg = await self.try_update_auction(
