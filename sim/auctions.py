@@ -226,6 +226,11 @@ class FirstPriceSealedBidAuction(Auction):
             self.num_bids >= len(self.users) - 1
         ) or self.timestamp + int(self.time_difference) < time()
 
+        if self.auction_over:
+            self.auction_leader.profits += self.auction_leader.limit_price - self.auction_price
+            auctioneer = self.users[self.auctioneer]
+            auctioneer.profits -= auctioneer.limit_price - self.auction_price
+
         print("FPSB FINISHED", self.auction_over)
 
         return made_bid
