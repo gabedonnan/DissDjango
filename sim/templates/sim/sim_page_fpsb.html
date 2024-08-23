@@ -59,8 +59,7 @@
       style="font-size: 20px; text-align: center;"
     >
         <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
-        <p>Current Bid:</p>
-        <p id="id_bid_price_display" style="display:none">100</p>
+        <p id="id_bid_price_display"></p>
         <p id="id_bid_counter"><span id="bid_number">0</span>/<span id="user_number">0</span> Bids Made</p>
         <br />
         <!--    Bid Number    -->
@@ -198,7 +197,6 @@
         }
 
         if (data.message.hasOwnProperty("price_update")) {
-            console.log(data.message);
             if (data.message.price_update !== true) {
                 // This means the auction has finished
                 var div = document.getElementById("id_bid_price_display");
