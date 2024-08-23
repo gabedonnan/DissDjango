@@ -177,7 +177,7 @@ class FirstPriceSealedBidAuction(Auction):
     # Record the number of users that bid to end early if all users have bid
     num_bids: int = 0
     # A set of the users that have bid already (no double bidding!)
-    users_seen: set[str]
+    users_seen: set[str] = set()
     auction_over: bool = False
 
     def __init__(
