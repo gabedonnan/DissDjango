@@ -214,6 +214,7 @@ class FirstPriceSealedBidAuction(Auction):
                 # Transfer money from buyer to auctioneer
                 self.auction_price = amount
                 self.auction_leader = current_user
+                print(f"FPSB UPDATED: LEADER = {self.auction_leader}, PRICE = {self.auction_price}")
 
         self.auction_over = (  # indicate the auction is over if all users have bid when this is called
             self.num_bids >= len(self.users) - 1
