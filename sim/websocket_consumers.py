@@ -190,10 +190,16 @@ class SimConsumer(AsyncWebsocketConsumer):
                 res["price_update"] = True
             else:
                 res["price_update"] = sim.auction_price
-                res["profit_update"] = [
-                    [sim.users[username].profits, username],
-                    [sim.users[sim.auctioneer].profits, sim.auctioneer]
-                ]
+                if hasattr(sim, "auction_leader"):
+                    res["profit_update"] = [
+                        [sim.auction_leader.profits, username],
+                        [sim.users[sim.auctioneer].profits, sim.auctioneer]
+                    ]
+                else:
+                    res["profit_update"] = [
+                        [sim.users[username].profits, username],
+                        [sim.users[sim.auctioneer].profits, sim.auctioneer]
+                    ]
 
         return broadcast_msg
 
