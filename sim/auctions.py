@@ -31,6 +31,12 @@ class AuctionUser:
                 f"Invalid Equality Comparison Between: AuctionUser and {type(other)}"
             )
 
+    def __repr__(self):
+        return f"AuctionUser({self.username})"
+
+    def __str__(self):
+        return f"AuctionUser({self.username})"
+
 
 class Auction:
     users: dict[str, AuctionUser]
