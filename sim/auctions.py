@@ -2,9 +2,6 @@ from collections import deque
 from random import randint, choice
 from time import time
 
-from sim.websocket_consumers import auction_instances
-
-
 class AuctionUser:
     money: int
     username: str
