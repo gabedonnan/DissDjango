@@ -197,11 +197,6 @@
         }
 
         if (data.message.hasOwnProperty("price_update")) {
-            if (data.message.price_update !== true) {
-                // This means the auction has finished
-                var div = document.getElementById("id_bid_price_display");
-                div.innerHTML = data.username + " has won the auction at a price of £" + data.message.price_update;
-            }
             // Update running log of bids
             add_message_to_top(data.username);
             total_bids += 1;
@@ -210,6 +205,9 @@
             console.log(total_bids);
 
             if (data.message.hasOwnProperty("profit_update")) {
+                var div = document.getElementById("id_bid_price_display");
+                div.innerHTML = data.message.profit_update[0][1] + " has won the auction at a price of £" + data.message.price_update;
+
                 var profit_div = document.getElementById("profits");
                 // Always sent out as a 2 by 2 array, one containing the auctioneer's profit and one containing the bidder's
                 if (data.message.profit_update[0][1] == "{{request.session.username}}") {
