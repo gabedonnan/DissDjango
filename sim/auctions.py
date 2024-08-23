@@ -177,7 +177,7 @@ class FirstPriceSealedBidAuction(Auction):
     # Record the number of users that bid to end early if all users have bid
     num_bids: int = 0
     # A set of the users that have bid already (no double bidding!)
-    users_seen: set[str] = set()
+    users_seen: set[str]
     auction_over: bool = False
 
     def __init__(
@@ -188,6 +188,7 @@ class FirstPriceSealedBidAuction(Auction):
         timer: int = 90,  # Default timer is 90 seconds
     ):
         super().__init__(users, limit_price_distribution, money_range)
+        self.users_seen = set()
         self.time_difference = int(timer)
 
     def bid(self, account: str, amount: int) -> bool:
