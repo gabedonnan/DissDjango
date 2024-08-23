@@ -267,13 +267,13 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
                     self.auction_price.popleft()
                     self.auction_price.append(amount)
                     self.auction_leader.popleft()
-                    self.auction_leader.append(account)
+                    self.auction_leader.append(self.users[account])
                 elif len(self.auction_price) > 1 and amount > self.auction_price[0]:
                     # The new bid is the second highest
                     self.auction_price.popleft()
                     self.auction_price.appendleft(amount)
                     self.auction_leader.popleft()
-                    self.auction_leader.appendleft(account)
+                    self.auction_leader.appendleft(self.users[account])
 
         self.auction_over = (  # indicate the auction is over if all users have bid when this is called
             self.num_bids >= len(self.users) - 1
