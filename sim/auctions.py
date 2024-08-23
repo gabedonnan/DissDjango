@@ -170,7 +170,7 @@ class EnglishAuction(Auction):
 
 
 class FirstPriceSealedBidAuction(Auction):
-    auction_price: int | None = None
+    auction_price: int | None = 0
     auction_leader: AuctionUser | None = None
     # Username maps to money amount and quantity of items owned
     users: dict[str, AuctionUser]
