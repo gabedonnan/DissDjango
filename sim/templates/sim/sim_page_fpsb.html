@@ -202,7 +202,7 @@
             add_message_to_top(data.username);
             total_bids += 1;
             var fpsb_bid_counter = document.getElementById("bid_number");
-            fpsb_bid_counter.innerHTMl = total_bids;
+            fpsb_bid_counter.innerHTML = total_bids;
             console.log(total_bids);
 
             if (data.message.hasOwnProperty("profit_update")) {
