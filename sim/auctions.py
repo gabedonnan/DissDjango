@@ -218,6 +218,8 @@ class FirstPriceSealedBidAuction(Auction):
             self.num_bids >= len(self.users) - 1
         ) or self.timestamp + int(self.time_difference) < time()
 
+        print("FPSB FINISHED", self.auction_over)
+
         return made_bid
         # Only broadcast if all users have bid or the time is up (i.e. auction over)
 
