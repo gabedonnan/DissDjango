@@ -20,13 +20,13 @@ urlpatterns = [
         name="simulation_page_english",
     ),  # English room path
     re_path(
-        r"fpsb/(?P<room_name>\w+)", simulation_page_fpsb, name="simulation_page_fpsb"
+        r"FPSB/(?P<room_name>\w+)", simulation_page_fpsb, name="simulation_page_fpsb"
     ),  # First price sealed bid room path
     re_path(
-        r"spsb/(?P<room_name>\w+)", simulation_page_spsb, name="simulation_page_spsb"
+        r"SPSB/(?P<room_name>\w+)", simulation_page_spsb, name="simulation_page_spsb"
     ),  # Second price sealed bid room path
     re_path(
-        r"cda/(?P<room_name>\w+)", simulation_page_cda, name="simulation_page_cda"
+        r"CDA/(?P<room_name>\w+)", simulation_page_cda, name="simulation_page_cda"
     ),  # Continuous double auction room path
     # Login Path
     path(
