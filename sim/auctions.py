@@ -212,7 +212,7 @@ class FirstPriceSealedBidAuction(Auction):
 
         return (
             self.num_bids >= len(self.users)
-            or self.timestamp + self.time_difference < time()
+            or self.timestamp + int(self.time_difference) < time()
         )
         # Only broadcast if all users have bid or the time is up (i.e. auction over)
 
