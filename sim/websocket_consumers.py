@@ -97,33 +97,7 @@ class SimConsumer(AsyncWebsocketConsumer):
             }
 
         if "register_user" in message:
-            if sim is None and self.query_params is not None:
-                # parse initial page arguments to augment auction
-                room_type = self.room_type
-
-                limit_price_distribution = await self.get_limit_distribution()
-
-                await self.set_room_type(limit_price_distribution, room_type)
-
-                await self.set_initial_params_from_query()
-
-                sim = auction_instances[room_name]
-                sim.auctioneer = username
-                res["set_admin"] = True
-
-            if username not in sim.users:
-                sim.add_user(username, sim.limit_price_distribution)
-
-            broadcast_msg = True
-            res["countdown_timer"] = int(
-                (sim.timestamp + int(sim.time_difference)) - time()
-            )
-            res["max_time"] = sim.time_difference
-            res["set_price"] = sim.auction_price
-            res["limit_price"] = sim.users[username].limit_price
-            res["update_user_count"] = connection_counters[self.room_id]
-            res["set_admin"] = "set_admin" in res  # False unless it is already True
-            # The set admin is to tell webpages to render differently if the user is the room admin
+            broadcast_msg, sim = await self.register_user(broadcast_msg, res, room_name, sim, username)
 
         if "update_auction" in message:
             broadcast_msg = await self.try_update_auction(
@@ -158,6 +132,34 @@ class SimConsumer(AsyncWebsocketConsumer):
                 },
             )
 
+    async def register_user(self, broadcast_msg, res, room_name, sim, username):
+        if sim is None and self.query_params is not None:
+            # parse initial page arguments to augment auction
+            room_type = self.room_type
+
+            limit_price_distribution = await self.get_limit_distribution()
+
+            await self.set_room_type(limit_price_distribution, room_type)
+
+            await self.set_initial_params_from_query()
+
+            sim = auction_instances[room_name]
+            sim.auctioneer = username
+            res["set_admin"] = True
+        if username not in sim.users:
+            sim.add_user(username, sim.limit_price_distribution)
+        broadcast_msg = True
+        res["countdown_timer"] = int(
+            (sim.timestamp + int(sim.time_difference)) - time()
+        )
+        res["max_time"] = sim.time_difference
+        res["set_price"] = sim.auction_price
+        res["limit_price"] = sim.users[username].limit_price
+        res["update_user_count"] = connection_counters[self.room_id]
+        res["set_admin"] = "set_admin" in res  # False unless it is already True
+        # The set admin is to tell webpages to render differently if the user is the room admin
+        return broadcast_msg, sim
+
     async def try_update_auction(self, broadcast_msg, message, res, username):
         auction_updated = False
         sim = auction_instances[self.room_id]
@@ -174,17 +176,6 @@ class SimConsumer(AsyncWebsocketConsumer):
             else:
                 auction_updated = sim.bid(username, instruction["price"])
         elif (
-            instruction["method"] == "initial_offer"
-            and username == sim.auctioneer
-            and hasattr(sim, "auctioneer_initial_offer")
-        ):
-            auction_updated = sim.auctioneer_initial_offer(
-                username,
-                instruction["asset"],
-                instruction["price"],
-                instruction["quantity"],
-            )
-        elif (
             instruction["method"] == "update_offer"
             and username == sim.auctioneer
             and hasattr(sim, "auctioneer_update_offer")
@@ -196,11 +187,16 @@ class SimConsumer(AsyncWebsocketConsumer):
         # But dont remove previous message broadcast approvals
         broadcast_msg = auction_updated or broadcast_msg
         if auction_updated and hasattr(sim, "auction_price"):
-            res["price_update"] = sim.auction_price
-            res["profit_update"] = [
-                [sim.users[username].profits, username],
-                [sim.users[sim.auctioneer].profits, sim.auctioneer]
-            ]
+            if isinstance(sim, FirstPriceSealedBidAuction) and not sim.auction_over:
+                # We dont want FPSB or SPSB auctions broadcasting pricing if they are not finished
+                res["price_update"] = True
+            else:
+                res["price_update"] = sim.auction_price
+                res["profit_update"] = [
+                    [sim.users[username].profits, username],
+                    [sim.users[sim.auctioneer].profits, sim.auctioneer]
+                ]
+
         return broadcast_msg
 
     async def set_initial_params_from_query(self):

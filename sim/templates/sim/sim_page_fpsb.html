@@ -198,6 +198,11 @@
         }
 
         if (data.message.hasOwnProperty("price_update")) {
+            if (data.message.price_update != true) {
+                // This means the auction has finished
+                var div = document.getElementById("id_bid_price_display");
+                div.innerHTML = data.username + " has won the auction at a price of £" + data.message.price_update;
+            }
             // Update running log of bids
             add_message_to_top(data.username);
             total_bids += 1;
@@ -221,7 +226,7 @@
             var user_counter = document.getElementById("users_connected");
             user_counter.innerHTML = data.message.update_user_count + " Connected User(s)";
             var fpsb_user_counter = document.getElementById("user_number");
-            fpsb_user_counter.innerHTML = data.message.update_user_count;
+            fpsb_user_counter.innerHTML = data.message.update_user_count - 1;  // We aren't counting the auctioneer
         }
 
         if (data.message.hasOwnProperty("set_price")) {
@@ -236,6 +241,7 @@
 
         if (data.message.type == "auction_end") {
             // Display auction end screen
+            console.log("its over baybee");
         }
 
         if (data.message.hasOwnProperty("download_history") && data.username == "{{request.session.username}}") {

@@ -2,6 +2,8 @@ from collections import deque
 from random import randint, choice
 from time import time
 
+from sim.websocket_consumers import auction_instances
+
 
 class AuctionUser:
     money: int
@@ -172,13 +174,14 @@ class EnglishAuction(Auction):
 class FirstPriceSealedBidAuction(Auction):
     auction_price: int | None = 0
     auction_leader: AuctionUser | None = None
-    # Username maps to money amount and quantity of items owned
-    users: dict[str, AuctionUser]
     # Unix timestamp of last bid to calculate whether the auction has finished
     timestamp: float
     time_difference: int
     # Record the number of users that bid to end early if all users have bid
     num_bids: int = 0
+    # A set of the users that have bid already (no double bidding!)
+    users_seen: set[str]
+    auction_over: bool = False
 
     def __init__(
         self,
@@ -195,12 +198,16 @@ class FirstPriceSealedBidAuction(Auction):
             amount = int(amount)
         except ValueError:
             return False
+
+        made_bid = False
         # Can a user pay for the asset
-        if account != self.auctioneer and account in self.users.keys():
+        if account != self.auctioneer and account in self.users.keys() and account not in self.users_seen:
             current_user = self.users[account]
             self.num_bids += (
                 1  # Always increase the number of bids even if it isnt the highest
             )
+            self.users_seen.add(account)
+            made_bid = True
             # Can a user pay for the asset
             if (
                 self.timestamp is None
@@ -210,10 +217,11 @@ class FirstPriceSealedBidAuction(Auction):
                 self.auction_price = amount
                 self.auction_leader = current_user
 
-        return (
-            self.num_bids >= len(self.users)
-            or self.timestamp + int(self.time_difference) < time()
-        )
+        self.auction_over = (  # indicate the auction is over if all users have bid when this is called
+            self.num_bids >= len(self.users) - 1
+        ) or self.timestamp + int(self.time_difference) < time()
+
+        return made_bid
         # Only broadcast if all users have bid or the time is up (i.e. auction over)
 
 
