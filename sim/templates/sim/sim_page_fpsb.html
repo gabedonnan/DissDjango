@@ -198,7 +198,8 @@
         }
 
         if (data.message.hasOwnProperty("price_update")) {
-            if (data.message.price_update != true) {
+            console.log(data.message);
+            if (data.message.price_update !== true) {
                 // This means the auction has finished
                 var div = document.getElementById("id_bid_price_display");
                 div.innerHTML = data.username + " has won the auction at a price of £" + data.message.price_update;
