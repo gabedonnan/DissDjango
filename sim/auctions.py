@@ -262,18 +262,18 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
                 or self.timestamp + int(self.time_difference) >= time()
             ) and current_user.money >= amount:
                 # The highest price is on the right
-                if len(self.auction_price) != 0 and amount > self.auction_price[-1]:
+                if len(self.auction_price) != 0 and (amount > self.auction_price[-1] or self.auction_price[-1] is None):
                     # The new bid is the highest
                     self.auction_price.popleft()
                     self.auction_price.append(amount)
                     self.auction_leader.popleft()
-                    self.auction_leader.append(self.users[account])
-                elif len(self.auction_price) > 1 and amount > self.auction_price[0]:
+                    self.auction_leader.append(current_user)
+                elif len(self.auction_price) > 1 and (amount > self.auction_price[0] or self.auction_price[0] is None):
                     # The new bid is the second highest
                     self.auction_price.popleft()
                     self.auction_price.appendleft(amount)
                     self.auction_leader.popleft()
-                    self.auction_leader.appendleft(self.users[account])
+                    self.auction_leader.appendleft(current_user)
 
         self.auction_over = (  # indicate the auction is over if all users have bid when this is called
             self.num_bids >= len(self.users) - 1
