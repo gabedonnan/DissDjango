@@ -151,7 +151,10 @@ class SimConsumer(AsyncWebsocketConsumer):
             (sim.timestamp + int(sim.time_difference)) - time()
         )
         res["max_time"] = sim.time_difference
-        res["set_price"] = sim.auction_price
+        if isinstance(sim.auction_price, deque):
+            res["set_price"] = sim.auction_price[-1]
+        else:
+            res["set_price"] = sim.auction_price
         res["limit_price"] = sim.users[username].limit_price
         res["update_user_count"] = connection_counters[self.room_id]
         res["set_admin"] = "set_admin" in res  # False unless it is already True

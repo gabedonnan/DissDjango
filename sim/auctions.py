@@ -238,8 +238,8 @@ class FirstPriceSealedBidAuction(Auction):
 
 
 class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
-    auction_leader: deque = deque()
-    auction_price: deque = deque()
+    auction_leader: deque = deque([None, None])
+    auction_price: deque = deque([0, 0])
 
     def bid(self, account: str, amount: int) -> bool:
         try:
