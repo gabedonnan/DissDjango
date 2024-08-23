@@ -246,12 +246,16 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
             amount = int(amount)
         except ValueError:
             return False
+
+        made_bid = False
         # Can a user pay for the asset
-        if account != self.auctioneer and account in self.users.keys():
+        if account != self.auctioneer and account in self.users.keys() and account not in self.users_seen:
             current_user = self.users[account]
             self.num_bids += (
                 1  # Always increase the number of bids even if it isnt the highest
             )
+            self.users_seen.add(account)
+            made_bid = True
             # Can a user pay for the asset
             if (
                 self.timestamp is None
@@ -271,10 +275,16 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
                     self.auction_leader.popleft()
                     self.auction_leader.appendleft(account)
 
-        return (
-                self.num_bids >= len(self.users)
-                or self.timestamp + int(self.time_difference) < time()
-        )
+        self.auction_over = (  # indicate the auction is over if all users have bid when this is called
+            self.num_bids >= len(self.users) - 1
+        ) or self.timestamp + int(self.time_difference) < time()
+
+        if self.auction_over:
+            self.auction_leader[-1].profits += self.auction_leader[-1].limit_price - self.auction_price[0]
+            auctioneer = self.users[self.auctioneer]
+            auctioneer.profits -= auctioneer.limit_price - self.auction_price[0]
+
+        return made_bid
         # Only broadcast if all users have bid or the time is up (i.e. auction over)
 
 class ContinuousDoubleAuction(Auction): ...
