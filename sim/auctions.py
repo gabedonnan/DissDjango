@@ -191,6 +191,10 @@ class FirstPriceSealedBidAuction(Auction):
         self.time_difference = int(timer)
 
     def bid(self, account: str, amount: int) -> bool:
+        try:
+            amount = int(amount)
+        except ValueError:
+            return False
         # Can a user pay for the asset
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
@@ -214,10 +218,14 @@ class FirstPriceSealedBidAuction(Auction):
 
 
 class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
-    auction_leader: deque = deque([None])
-    auction_price: deque = deque([0])
+    auction_leader: deque = deque()
+    auction_price: deque = deque()
 
     def bid(self, account: str, amount: int) -> bool:
+        try:
+            amount = int(amount)
+        except ValueError:
+            return False
         # Can a user pay for the asset
         if account != self.auctioneer and account in self.users.keys():
             current_user = self.users[account]
