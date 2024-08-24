@@ -3,7 +3,7 @@ from random import randint
 from time import time
 
 # Call it ContinuousDoubleAuction to avoid confusion
-from limit_order_book import LimitOrderBook as ContinuousDoubleAuction
+from .limit_order_book import LimitOrderBook as ContinuousDoubleAuction
 
 class AuctionUser:
     money: int
