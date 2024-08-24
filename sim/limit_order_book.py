@@ -48,7 +48,7 @@ class LimitOrderBook:
     timestamp: float | None = None
     time_difference: int | None = None
 
-    def __init__(self, timer: int):
+    def __init__(self, timer: int = 300):
         self.bids = SortedDict()
         self.asks = SortedDict()
         self.orders = {}
