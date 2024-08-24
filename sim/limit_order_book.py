@@ -44,12 +44,17 @@ class LimitOrderBook:
     order_id: int
     executed_transactions: list[str, str, int, int]  # buyer, seller, quantity, price
 
-    def __init__(self):
+    # Unix timestamp of last bid to calculate whether the auction has finished
+    timestamp: float | None = None
+    time_difference: int | None = None
+
+    def __init__(self, timer: int):
         self.bids = SortedDict()
         self.asks = SortedDict()
         self.orders = {}
         self.order_id = 0
         self.executed_transactions = []
+        self.time_difference = int(timer)
 
     def get_side(self, is_bid: bool) -> SortedDict[int, LimitLevel]:
         return self.bids if is_bid else self.asks
@@ -159,7 +164,7 @@ class LimitOrderBook:
         self, quantity: int, price: int, order_type: OrderType, trader_id: str
     ) -> int:
         if price >= 0 and quantity > 0:
-            order = Order(True, quantity, price, self.order_id, order_type, trader_id)
+            order = Order(True, int(quantity), int(price), self.order_id, order_type, trader_id)
             self.order_id += 1
             self.add_order(order)
             return self.order_id - 1
@@ -170,7 +175,7 @@ class LimitOrderBook:
         self, quantity: int, price: int, order_type: OrderType, trader_id: str
     ) -> int:
         if price >= 0 and quantity > 0:
-            order = Order(False, quantity, price, self.order_id, order_type, trader_id)
+            order = Order(False, int(quantity), int(price), self.order_id, order_type, trader_id)
             self.order_id += 1
             self.add_order(order)
             return self.order_id - 1
