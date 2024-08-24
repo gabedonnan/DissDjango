@@ -192,7 +192,13 @@ class SimConsumer(AsyncWebsocketConsumer):
                 # We dont want FPSB or SPSB auctions broadcasting pricing if they are not finished
                 res["price_update"] = True
             else:
-                res["price_update"] = sim.auction_price
+                # Lots of deque checks for SPSB auctions, probably better done with method calls but oh well
+                if isinstance(sim.auction_price, deque):
+                    # Take the second highest price for SPSB
+                    res["price_update"] = sim.auction_price[0]
+                else:
+                    res["price_update"] = sim.auction_price
+
                 if hasattr(sim, "auction_leader"):
                     if isinstance(sim.auction_leader, AuctionUser):
                         res["profit_update"] = [
