@@ -83,10 +83,10 @@
 
         <br />
         <!--    Bid Number    -->
-        <input type="number" id="id_message_send_input_price" />
-        <input type="number" id="id_message_send_input_quantity" />
-        <button type="submit" id="id_message_send_button">Bid</button>
-        <button type="submit" id="id_message_send_button_ask">Ask</button>
+        <input type="number" id="id_message_send_price" />
+        <input type="number" id="id_message_send_quantity" />
+        <button type="submit" id="id_message_send_bid">Bid</button>
+        <button type="submit" id="id_message_send_ask">Ask</button>
         <br />
         <br />
         <p id="profits">Total Profits Made: £0</p>
@@ -153,7 +153,7 @@
 
       document.querySelector("#id_message_send_price").focus();
 
-      document.querySelector("#id_message_send_button").onclick = function (e) {
+      document.querySelector("#id_message_send_bid").onclick = function (e) {
         var messageInput = document.querySelector(
           "#id_message_send_price"
         ).value;
