@@ -451,6 +451,12 @@ class ContinuousDoubleAuction(Auction):
     def bid(
         self, quantity: int, price: int, order_type: OrderType, trader_id: str
     ) -> int:
+        try:
+            price = int(price)
+            quantity = int(quantity)
+        except ValueError:
+            return -1
+
         if (
             trader_id != self.auctioneer
             and trader_id in self.users.keys()
@@ -458,7 +464,7 @@ class ContinuousDoubleAuction(Auction):
             and quantity > 0
         ):
             order = Order(
-                True, int(quantity), int(price), self.order_id, order_type, trader_id
+                True, quantity, price, self.order_id, order_type, trader_id
             )
             self.order_id += 1
             self.add_order(order)
@@ -469,6 +475,12 @@ class ContinuousDoubleAuction(Auction):
     def ask(
         self, quantity: int, price: int, order_type: OrderType, trader_id: str
     ) -> int:
+        try:
+            price = int(price)
+            quantity = int(quantity)
+        except ValueError:
+            return -1
+
         if (
             trader_id != self.auctioneer
             and trader_id in self.users.keys()
@@ -476,7 +488,7 @@ class ContinuousDoubleAuction(Auction):
             and quantity > 0
         ):
             order = Order(
-                False, int(quantity), int(price), self.order_id, order_type, trader_id
+                False, quantity, price, self.order_id, order_type, trader_id
             )
             self.order_id += 1
             self.add_order(order)
