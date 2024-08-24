@@ -1,6 +1,7 @@
 from collections import deque
-from random import randint, choice
+from random import randint
 from time import time
+from BristolMatchingEngine import *
 
 class AuctionUser:
     money: int
@@ -288,3 +289,4 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
         # Only broadcast if all users have bid or the time is up (i.e. auction over)
 
 class ContinuousDoubleAuction(Auction): ...
+
