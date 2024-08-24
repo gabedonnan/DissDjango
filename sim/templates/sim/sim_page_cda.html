@@ -222,6 +222,9 @@
         if (data.message.hasOwnProperty("price_update")) {
             var bid_children = document.getElementById("bid_container").children;
             var ask_children = document.getElementById("ask_container").children;
+
+            console.log(data.message.price_update);
+
             for (var i = 1; i < bid_children.length; i++) {
                 if (i >= data.message.price_update.bids.length) {
                     bid_children[i].innerHTML = "";
