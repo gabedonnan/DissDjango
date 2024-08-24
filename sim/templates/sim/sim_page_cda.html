@@ -226,7 +226,7 @@
             console.log(data.message.price_update);
 
             for (var i = 1; i < bid_children.length; i++) {
-                if (i >= data.message.price_update.bids.length) {
+                if (i - 1 >= data.message.price_update.bids.length) {
                     bid_children[i].innerHTML = "";
                 } else {
                     bid_children[i].innerHTML = data.message.price_update.bids[i-1][0] + " @ " + data.message.price_update.bids[i-1][1];
@@ -234,7 +234,7 @@
             }
 
             for (var i = 1; i < ask_children.length; i++) {
-                if (i-1 >= data.message.price_update.asks.length) {
+                if (i - 1 >= data.message.price_update.asks.length) {
                     ask_children[i].innerHTML = "";
                 } else {
                     ask_children[i].innerHTML = data.message.price_update.asks[i-1][0] + " @ " + data.message.price_update.asks[i-1][1];
