@@ -180,7 +180,7 @@ class SimConsumer(AsyncWebsocketConsumer):
         # This can be used to determine whether a message should be broadcast
         instruction = message["update_auction"]
         if instruction["method"] == "ask" and hasattr(sim, "ask"):
-            auction_updated = sim.ask(username, instruction["price"])
+            auction_updated = sim.ask(instruction["quantity"], instruction["price"], OrderType.limit, username)
         elif instruction["method"] == "bid" and hasattr(sim, "bid"):
             if isinstance(sim, DutchAuction):
                 # Dutch auctions do not require a provided price to bid
