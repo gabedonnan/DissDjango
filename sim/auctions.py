@@ -4,7 +4,7 @@ from time import time
 from sortedcontainers import SortedDict
 
 # Call it ContinuousDoubleAuction to avoid confusion
-from limit_order_book import LimitLevel, Order, OrderType
+from .limit_order_book import LimitLevel, Order, OrderType
 
 
 class AuctionUser:
