@@ -1,7 +1,9 @@
 from collections import deque
 from random import randint
 from time import time
-from BristolMatchingEngine import *
+
+# Call it ContinuousDoubleAuction to avoid confusion
+from limit_order_book import LimitOrderBook as ContinuousDoubleAuction
 
 class AuctionUser:
     money: int
@@ -287,6 +289,4 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
 
         return made_bid
         # Only broadcast if all users have bid or the time is up (i.e. auction over)
-
-class ContinuousDoubleAuction(Auction): ...
 

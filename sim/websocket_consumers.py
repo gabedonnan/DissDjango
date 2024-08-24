@@ -8,11 +8,11 @@ import numpy as np
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from .auctions import *
-
+from .doubly_linked_list import OrderType
 
 # All auction instances are stored in this global variable and keyed by room ID
 # This is because to serve multiple users an arbitrary number of SimConsumer objects will be created without my control
-auction_instances: dict[str, Auction | None] = {}
+auction_instances: dict[str, Auction | None | ContinuousDoubleAuction] = {}
 
 connection_counters: dict[str, int] = defaultdict(int)
 
@@ -174,6 +174,10 @@ class SimConsumer(AsyncWebsocketConsumer):
             if isinstance(sim, DutchAuction):
                 # Dutch auctions do not require a provided price to bid
                 auction_updated = sim.bid(username)
+            elif isinstance(sim, ContinuousDoubleAuction):
+                # Only supporting limit orders for now, though some of the others are technically supported
+                order_id = sim.bid(instruction["quantity"], instruction["price"], OrderType.limit, username)
+                auction_updated = order_id != -1
             else:
                 auction_updated = sim.bid(username, instruction["price"])
         elif (
@@ -215,6 +219,11 @@ class SimConsumer(AsyncWebsocketConsumer):
                         [sim.users[username].profits, username],
                         [sim.users[sim.auctioneer].profits, sim.auctioneer]
                     ]
+        elif auction_updated and isinstance(sim, ContinuousDoubleAuction):
+            # As insanely inefficient as it is we will broadcast the top 5 values of the changed side each time
+            # This is because building a CDA reconciler in the webpage is a little bit too much work for now
+            # If we ever want to scale we should only broadcast the changed msg and let the webpage reconcile trades
+            res["price_update"] = {"bids": sim.bids.values()[-5:][::-1], "asks": sim.asks.values()[:5]}
 
         return broadcast_msg
 
@@ -275,7 +284,7 @@ class SimConsumer(AsyncWebsocketConsumer):
             case "SPSB":
                 sim = SecondPriceSealedBidAuction([], limit_price_distribution)
             case "CDA":
-                sim = ContinuousDoubleAuction([], limit_price_distribution)
+                sim = ContinuousDoubleAuction()
 
         auction_instances[self.room_id] = sim
 
@@ -288,3 +297,4 @@ class SimConsumer(AsyncWebsocketConsumer):
                 }
             )
         )
+
