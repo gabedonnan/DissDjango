@@ -45,7 +45,7 @@
 
         .column {
           float: left;
-          width: 49%;
+          width: 50%;
           padding: 10px;
           height: 300px; /* Should be removed. Only for demonstration */
         }
@@ -76,8 +76,6 @@
       style="font-size: 20px; text-align: center;"
     >
         <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
-        <p>Current Bid:</p>
-        <p id="id_bid_price_display">100</p>
 
         <div class="row">
           <div class="column" style="background-color:#aaa;" id="bid_container">
@@ -100,7 +98,9 @@
 
         <br />
         <!--    Bid Number    -->
+        <h3>Price:</h3>
         <input type="number" id="id_message_send_price" />
+        <h3>Quantity:</h3>
         <input type="number" id="id_message_send_quantity" />
         <button type="submit" id="id_message_send_bid">Bid</button>
         <button type="submit" id="id_message_send_ask">Ask</button>
@@ -197,6 +197,43 @@
                     {
                         message: {
                             update_auction: {method: "bid", price: messageInput, quantity: messageInputQuantity}
+                        },
+                        username : "{{request.session.username}}"
+                    }
+                )
+            );
+        }
+
+
+      };
+
+      document.querySelector("#id_message_send_ask").onclick = function (e) {
+        var messageInput = document.querySelector(
+          "#id_message_send_price"
+        ).value;
+
+        var messageInputQuantity = document.querySelector(
+          "#id_message_send_quantity"
+        ).value
+
+        if (document.getElementById("countdown_timer").textContent == "Bidding Finished!") {
+            // IF the browser thinks the countdown timer is finished then send off an "is finished" check to the server
+            sim_socket.send(
+                JSON.stringify(
+                    {
+                        message: {
+                            end_auction: true
+                        },
+                        username : "{{request.session.username}}"
+                    }
+                )
+            );
+        } else {
+            sim_socket.send(
+                JSON.stringify(
+                    {
+                        message: {
+                            update_auction: {method: "ask", price: messageInput, quantity: messageInputQuantity}
                         },
                         username : "{{request.session.username}}"
                     }
