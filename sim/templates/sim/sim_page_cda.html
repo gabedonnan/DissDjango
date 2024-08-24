@@ -38,6 +38,19 @@
             outline: none;
             box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
         }
+
+        .column {
+          float: left;
+          width: 50%;
+          padding: 10px;
+          height: 300px; /* Should be removed. Only for demonstration */
+        }
+
+        .row:after {
+          content: "";
+          display: table;
+          clear: both;
+        }
     </style>
 </head>
 <body>
