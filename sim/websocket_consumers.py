@@ -299,7 +299,7 @@ class SimConsumer(AsyncWebsocketConsumer):
             case "SPSB":
                 sim = SecondPriceSealedBidAuction([], limit_price_distribution)
             case "CDA":
-                sim = ContinuousDoubleAuction()
+                sim = ContinuousDoubleAuction([], limit_price_distribution)
 
         auction_instances[self.room_id] = sim
 
