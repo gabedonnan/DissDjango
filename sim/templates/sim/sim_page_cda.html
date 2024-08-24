@@ -7,9 +7,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        #bid_history {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        #bid_history div {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #e6e6e6;
+            border-radius: 4px;
+            word-wrap: break-word;
+        }
+
+        #id_message_send_price, #id_message_send_quantity {
+            width: 90vw;
+            height: 80px;
+            padding: 15px;
+            margin: 10px auto;
+            box-sizing: border-box;
+            display: block;
+            font-size: 1.2em;
+            font-family: Arial, sans-serif;
+        }
+
+        #id_message_send_price:focus, #id_message_send_quantity:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    </style>
 </head>
 <body>
     <center>
+        <h1>Auction Type: Continuous Double Auction</h1>
         <h1>Your username is {{request.session.username}}</h1>
     </center>
     <br>
@@ -23,50 +56,148 @@
     <div
       class="chat__item__container"
       id="id_chat_item_container"
-      style="font-size: 20px"
+      style="font-size: 20px; text-align: center;"
     >
+        <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
+        <p>Current Bid:</p>
         <p id="id_bid_price_display">100</p>
+
+        <div class="row">
+          <div class="column" style="background-color:#aaa;" id="bid_container">
+              <h2>Bids</h2>
+              <p id="bid_1"></p>
+              <p id="bid_2"></p>
+              <p id="bid_3"></p>
+              <p id="bid_4"></p>
+              <p id="bid_5"></p>
+          </div>
+          <div class="column" style="background-color:#bbb;" id="ask_container">
+              <h2>Asks</h2>
+              <p id="ask_1"></p>
+              <p id="ask_2"></p>
+              <p id="ask_3"></p>
+              <p id="ask_4"></p>
+              <p id="ask_5"></p>
+          </div>
+        </div>
+
         <br />
         <!--    Bid Number    -->
-        <input type="number" id="id_message_send_input" />
-        <button type="submit" id="id_message_send_button">Send Message</button>
+        <input type="number" id="id_message_send_input_price" />
+        <input type="number" id="id_message_send_input_quantity" />
+        <button type="submit" id="id_message_send_button">Bid</button>
+        <button type="submit" id="id_message_send_button_ask">Ask</button>
         <br />
         <br />
+        <p id="profits">Total Profits Made: £0</p>
+        <p id="utility">Current utility price for this asset: £0</p>
+        <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
+        <br />
+        <button id="download_history">Download Auction History</button>
+        <p id="users_connected">1 Connected User(s)</p>
     </div>
     <script>
       const room_id = window.location.pathname
-      const sim_socket = new WebSocket("ws://" + window.location.host + "/ws" + room_id);
+      const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id + (room_id.endsWith("/") ? "" : "/"));
+
+      console.log(room_id);
+
+      var auction_finished = false;
+      var timer_interval_id = null;
+      var max_time = null;
+      var profit = 0;
+      var utility_price = 0;
+      var is_admin = false;  // Changing this just changes how your page looks, doesnt give you admin permissions, sorry
+
+      function add_message_to_top(message) {
+        // Get the message container
+        const message_container = document.getElementById('bid_history');
+
+        // Create a new div element for the message
+        const new_message = document.createElement('div');
+        new_message.textContent = message;
+
+        // Insert the new message at the top
+        message_container.insertBefore(new_message, message_container.firstChild);
+      }
+
+      function start_auction_timer(duration, display) {
+         timer_interval_id = setInterval(
+            function () {
+                if (--duration + 1 > 0) {
+                    display.textContent = "Current Time Remaining: " + duration + " Seconds";
+                } else {
+                    display.textContent = "Bidding Finished!";
+                }
+            },
+            1000
+        );
+      };
 
       sim_socket.onopen = function (e) {
         console.log("The connection was setup successfully !");
+        sim_socket.send(JSON.stringify(
+            {
+                message: {
+                    register_user: true,
+                    window_search: window.location.search
+                },
+                username : "{{request.session.username}}"
+            }
+        ));
       };
 
       sim_socket.onclose = function (e) {
         console.log("Something unexpected happened !");
       };
 
-      document.querySelector("#id_message_send_input").focus();
-
-      document.querySelector("#id_message_send_input").onkeyup = function (e) {
-        if (e.keyCode == 13) {
-          document.querySelector("#id_message_send_button").click();
-        }
-      };
+      document.querySelector("#id_message_send_price").focus();
 
       document.querySelector("#id_message_send_button").onclick = function (e) {
         var messageInput = document.querySelector(
-          "#id_message_send_input"
+          "#id_message_send_price"
         ).value;
 
-        console.log(JSON.stringify({ message: {update_auction: {messageInput}}, username : "{{request.session.username}}"}));
+        var messageInputQuantity = document.querySelector(
+          "#id_message_send_quantity"
+        ).value
 
+        if (document.getElementById("countdown_timer").textContent == "Bidding Finished!") {
+            // IF the browser thinks the countdown timer is finished then send off an "is finished" check to the server
+            sim_socket.send(
+                JSON.stringify(
+                    {
+                        message: {
+                            end_auction: true
+                        },
+                        username : "{{request.session.username}}"
+                    }
+                )
+            );
+        } else {
+            sim_socket.send(
+                JSON.stringify(
+                    {
+                        message: {
+                            update_auction: {method: "bid", price: messageInput, quantity: messageInputQuantity}
+                        },
+                        username : "{{request.session.username}}"
+                    }
+                )
+            );
+        }
+
+
+      };
+
+      document.querySelector("#download_history").onclick = function (e) {
         sim_socket.send(
             JSON.stringify(
                 {
                     message: {
-                        update_auction: {method: "bid", price: messageInput}
+                        download_history: true
                     },
-                    username : "{{request.session.username}}"
+                    username: "{{request.session.username}}"
                 }
             )
         );
@@ -74,15 +205,103 @@
 
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        console.log(data);
-        if (data.message.type == "price_update") {
-            var div = document.getElementById("id_bid_price_display");
-            div.innerHTML = "£" + data.message.price;
-        } else if (data.message.type == "auction_end") {
-            // Display auction end screen
-        } else {
-            console.log(e.data)
+
+        if (data.message.hasOwnProperty("set_admin") && data.message.set_admin == true) {
+            // Change the webpage for auctions in which hte admin operates differently
+            is_admin = true;
+            var send_box = document.getElementById("id_message_send_input");
+            var send_button = document.getElementById("id_message_send_button");
+            send_box.style.display = 'none';
+            send_button.style.display = 'none';
         }
+
+        if (data.message.hasOwnProperty("price_update")) {
+            var bid_children = document.getElementById("bid_container").children;
+            var ask_children = document.getElementById("ask_container").children;
+            for (var i = 1; i < bid_children.length; i++) {
+                if (i >= data.message.price_update.bids.length) {
+                    bid_children[i].innerHTML = "";
+                } else {
+                    bid_children[i].innerHTML = data.message.price_update.bids[i-1][0] + " @ " + data.message.price_update.bids[i-1][1];
+                }
+            }
+
+            for (var i = 1; i < ask_children.length; i++) {
+                if (i-1 >= data.message.price_update.asks.length) {
+                    ask_children[i].innerHTML = "";
+                } else {
+                    ask_children[i].innerHTML = data.message.price_update.asks[i-1][0] + " @ " + data.message.price_update.asks[i-1][1];
+                }
+            }
+
+            if (timer_interval_id != null) {
+                clearTimeout(timer_interval_id);
+                start_auction_timer(
+                    max_time,
+                    document.getElementById("countdown_timer")
+                );
+            }
+
+            // Update running log of bids
+            add_message_to_top(data.username);
+
+            if (data.message.hasOwnProperty("profit_update")) {
+                var profit_div = document.getElementById("profits");
+                // Always sent out as a 2 by 2 array, one containing the auctioneer's profit and one containing the bidder's
+                if (data.message.profit_update[0][1] == "{{request.session.username}}") {
+                    profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[0][0];
+                } else if (data.message.profit_update[1][1] == "{{request.session.username}}") {
+                    profit_div.innerHTML = "Total Profits Made: £" + data.message.profit_update[1][0];
+                }
+
+            }
+        }
+
+        if (data.message.hasOwnProperty("update_user_count")) {
+            var user_counter = document.getElementById("users_connected");
+            user_counter.innerHTML = data.message.update_user_count + " Connected User(s)";
+        }
+
+        if (data.message.hasOwnProperty("set_price")) {
+            var div = document.getElementById("id_bid_price_display");
+            div.innerHTML = "£" + data.message.set_price;
+        }
+
+        if (data.message.hasOwnProperty("limit_price") && data.username == "{{request.session.username}}") {
+            var div = document.getElementById("utility");
+            div.innerHTML = "Current utility price for this asset: £" + data.message.limit_price;
+        }
+
+        if (data.message.type == "auction_end") {
+            // Display auction end screen
+        }
+
+        if (data.message.hasOwnProperty("download_history") && data.username == "{{request.session.username}}") {
+            // https://stackoverflow.com/questions/3665115/how-to-create-a-file-in-memory-for-user-to-download-but-not-through-server
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.message.download_history));
+            element.setAttribute('download', "auction_history.txt");
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        }
+
+        if (data.message.hasOwnProperty("countdown_timer") && timer_interval_id === null) {
+            start_auction_timer(
+                data.message.countdown_timer,
+                document.getElementById("countdown_timer")
+            );
+        }
+
+        if (data.message.hasOwnProperty("max_time") && max_time === null) {
+            max_time = data.message.max_time;
+        }
+
+
 
       };
     </script>

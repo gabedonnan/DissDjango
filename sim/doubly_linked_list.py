@@ -1,11 +1,13 @@
 from enum import Enum
 
+
 class OrderType(Enum):
     limit = "LIMIT"
     fill_and_kill = "FILL_AND_KILL"
     market = "MARKET"
     immediate_or_cancel = "IMMEDIATE_OR_CANCEL"
     post_only = "POST_ONLY"
+
 
 class Order:
     is_bid: bool

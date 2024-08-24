@@ -5,6 +5,7 @@ from time import time
 # Call it ContinuousDoubleAuction to avoid confusion
 from .limit_order_book import LimitOrderBook as ContinuousDoubleAuction
 
+
 class AuctionUser:
     money: int
     username: str
@@ -113,7 +114,9 @@ class DutchAuction(Auction):
         except ValueError:
             return False
 
-        if account == self.auctioneer and (self.auction_price is None or 0 < price < self.auction_price):
+        if account == self.auctioneer and (
+            self.auction_price is None or 0 < price < self.auction_price
+        ):
             self.auction_price = price
             return True
         return False
@@ -208,7 +211,11 @@ class FirstPriceSealedBidAuction(Auction):
 
         made_bid = False
         # Can a user pay for the asset
-        if account != self.auctioneer and account in self.users.keys() and account not in self.users_seen:
+        if (
+            account != self.auctioneer
+            and account in self.users.keys()
+            and account not in self.users_seen
+        ):
             current_user = self.users[account]
             self.num_bids += (
                 1  # Always increase the number of bids even if it isnt the highest
@@ -223,14 +230,21 @@ class FirstPriceSealedBidAuction(Auction):
                 # Transfer money from buyer to auctioneer
                 self.auction_price = amount
                 self.auction_leader = current_user
-                print(f"FPSB UPDATED: LEADER = {self.auction_leader}, PRICE = {self.auction_price}")
+                print(
+                    f"FPSB UPDATED: LEADER = {self.auction_leader}, PRICE = {self.auction_price}"
+                )
 
-        self.auction_over = (  # indicate the auction is over if all users have bid when this is called
-            self.num_bids >= len(self.users) - 1
-        ) or self.timestamp + int(self.time_difference) < time()
+        self.auction_over = (
+            (  # indicate the auction is over if all users have bid when this is called
+                self.num_bids >= len(self.users) - 1
+            )
+            or self.timestamp + int(self.time_difference) < time()
+        )
 
         if self.auction_over:
-            self.auction_leader.profits += self.auction_leader.limit_price - self.auction_price
+            self.auction_leader.profits += (
+                self.auction_leader.limit_price - self.auction_price
+            )
             auctioneer = self.users[self.auctioneer]
             auctioneer.profits -= auctioneer.limit_price - self.auction_price
 
@@ -252,7 +266,11 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
 
         made_bid = False
         # Can a user pay for the asset
-        if account != self.auctioneer and account in self.users.keys() and account not in self.users_seen:
+        if (
+            account != self.auctioneer
+            and account in self.users.keys()
+            and account not in self.users_seen
+        ):
             current_user = self.users[account]
             self.num_bids += (
                 1  # Always increase the number of bids even if it isnt the highest
@@ -265,28 +283,36 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
                 or self.timestamp + int(self.time_difference) >= time()
             ) and current_user.money >= amount:
                 # The highest price is on the right
-                if len(self.auction_price) != 0 and (amount > self.auction_price[-1] or self.auction_price[-1] is None):
+                if len(self.auction_price) != 0 and (
+                    amount > self.auction_price[-1] or self.auction_price[-1] is None
+                ):
                     # The new bid is the highest
                     self.auction_price.popleft()
                     self.auction_price.append(amount)
                     self.auction_leader.popleft()
                     self.auction_leader.append(current_user)
-                elif len(self.auction_price) > 1 and (amount > self.auction_price[0] or self.auction_price[0] is None):
+                elif len(self.auction_price) > 1 and (
+                    amount > self.auction_price[0] or self.auction_price[0] is None
+                ):
                     # The new bid is the second highest
                     self.auction_price.popleft()
                     self.auction_price.appendleft(amount)
                     self.auction_leader.popleft()
                     self.auction_leader.appendleft(current_user)
 
-        self.auction_over = (  # indicate the auction is over if all users have bid when this is called
-            self.num_bids >= len(self.users) - 1
-        ) or self.timestamp + int(self.time_difference) < time()
+        self.auction_over = (
+            (  # indicate the auction is over if all users have bid when this is called
+                self.num_bids >= len(self.users) - 1
+            )
+            or self.timestamp + int(self.time_difference) < time()
+        )
 
         if self.auction_over:
-            self.auction_leader[-1].profits += self.auction_leader[-1].limit_price - self.auction_price[0]
+            self.auction_leader[-1].profits += (
+                self.auction_leader[-1].limit_price - self.auction_price[0]
+            )
             auctioneer = self.users[self.auctioneer]
             auctioneer.profits -= auctioneer.limit_price - self.auction_price[0]
 
         return made_bid
         # Only broadcast if all users have bid or the time is up (i.e. auction over)
-

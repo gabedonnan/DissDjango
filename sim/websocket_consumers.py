@@ -95,7 +95,9 @@ class SimConsumer(AsyncWebsocketConsumer):
             }
 
         if "register_user" in message:
-            broadcast_msg, sim = await self.register_user(broadcast_msg, res, room_name, sim, username)
+            broadcast_msg, sim = await self.register_user(
+                broadcast_msg, res, room_name, sim, username
+            )
 
         if "update_auction" in message:
             broadcast_msg = await self.try_update_auction(
@@ -176,7 +178,12 @@ class SimConsumer(AsyncWebsocketConsumer):
                 auction_updated = sim.bid(username)
             elif isinstance(sim, ContinuousDoubleAuction):
                 # Only supporting limit orders for now, though some of the others are technically supported
-                order_id = sim.bid(instruction["quantity"], instruction["price"], OrderType.limit, username)
+                order_id = sim.bid(
+                    instruction["quantity"],
+                    instruction["price"],
+                    OrderType.limit,
+                    username,
+                )
                 auction_updated = order_id != -1
             else:
                 auction_updated = sim.bid(username, instruction["price"])
@@ -207,23 +214,31 @@ class SimConsumer(AsyncWebsocketConsumer):
                     if isinstance(sim.auction_leader, AuctionUser):
                         res["profit_update"] = [
                             [sim.auction_leader.profits, sim.auction_leader.username],
-                            [sim.users[sim.auctioneer].profits, sim.auctioneer]
+                            [sim.users[sim.auctioneer].profits, sim.auctioneer],
                         ]
                     else:
                         res["profit_update"] = [
-                            [sim.auction_leader[-1].profits, sim.auction_leader[-1].username],
-                            [sim.users[sim.auctioneer].profits, sim.auctioneer]
+                            [
+                                sim.auction_leader[-1].profits,
+                                sim.auction_leader[-1].username,
+                            ],
+                            [sim.users[sim.auctioneer].profits, sim.auctioneer],
                         ]
                 else:
                     res["profit_update"] = [
                         [sim.users[username].profits, username],
-                        [sim.users[sim.auctioneer].profits, sim.auctioneer]
+                        [sim.users[sim.auctioneer].profits, sim.auctioneer],
                     ]
         elif auction_updated and isinstance(sim, ContinuousDoubleAuction):
             # As insanely inefficient as it is we will broadcast the top 5 values of the changed side each time
             # This is because building a CDA reconciler in the webpage is a little bit too much work for now
             # If we ever want to scale we should only broadcast the changed msg and let the webpage reconcile trades
-            res["price_update"] = {"bids": sim.bids.values()[-5:][::-1], "asks": sim.asks.values()[:5]}
+            bid_values = sim.bids.values()[-5:][::-1]
+            ask_values = sim.asks.values()[:5]
+            res["price_update"] = {
+                "bids": [[bid.quantity, bid.price] for bid in bid_values],
+                "asks": [[ask.quantity, ask.price] for ask in ask_values],
+            }
 
         return broadcast_msg
 
@@ -297,4 +312,3 @@ class SimConsumer(AsyncWebsocketConsumer):
                 }
             )
         )
-

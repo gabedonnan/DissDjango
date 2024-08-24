@@ -3,6 +3,7 @@
 from .doubly_linked_list import *
 from sortedcontainers import SortedDict
 
+
 class LimitLevel:
     price: int
     orders: DoublyLinkedList
@@ -35,6 +36,7 @@ class LimitLevel:
     def get_length(self) -> int:
         return self.orders.length
 
+
 class LimitOrderBook:
     bids: SortedDict[int, LimitLevel]
     asks: SortedDict[int, LimitLevel]
@@ -60,7 +62,9 @@ class LimitOrderBook:
         if order.is_bid and best_ask is not None and best_ask.price <= order.price:
             self.match_orders(order, best_ask)
             return
-        elif not order.is_bid and best_bid is not None and best_bid.price >= order.price:
+        elif (
+            not order.is_bid and best_bid is not None and best_bid.price >= order.price
+        ):
             self.match_orders(order, best_bid)
             return
 
@@ -77,7 +81,11 @@ class LimitOrderBook:
         if best_value is None:
             return
 
-        while best_value.quantity > 0 and order.quantity > 0 and best_value.get_length() > 0:
+        while (
+            best_value.quantity > 0
+            and order.quantity > 0
+            and best_value.get_length() > 0
+        ):
             head_order: Order = best_value.get_head()
 
             if order.quantity <= head_order.quantity:
@@ -147,7 +155,9 @@ class LimitOrderBook:
 
             del self.orders[id_]
 
-    def bid(self, quantity: int, price: int, order_type: OrderType, trader_id: str) -> int:
+    def bid(
+        self, quantity: int, price: int, order_type: OrderType, trader_id: str
+    ) -> int:
         if price >= 0 and quantity > 0:
             order = Order(True, quantity, price, self.order_id, order_type, trader_id)
             self.order_id += 1
@@ -156,7 +166,9 @@ class LimitOrderBook:
         else:
             return -1
 
-    def ask(self, quantity: int, price: int, order_type: OrderType, trader_id: str) -> int:
+    def ask(
+        self, quantity: int, price: int, order_type: OrderType, trader_id: str
+    ) -> int:
         if price >= 0 and quantity > 0:
             order = Order(False, quantity, price, self.order_id, order_type, trader_id)
             self.order_id += 1
