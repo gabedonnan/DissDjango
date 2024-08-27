@@ -68,7 +68,9 @@
         <br />
         <br />
         <span title="Make sure to buy assets below your utility price to profit!" id="profits">Total Profits Made: £0</span>
+        <br />
         <span id="utility" title="The price you think the asset is worth to you, try and bid below this!">Current utility price for this asset: £0</span>
+        <br />
         <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
         <br />
         <button id="download_history">Download Auction History</button>
@@ -203,7 +205,7 @@
                 div.title = "you are currently leading the bid!";
             } else {
                 div.style.color = "black";
-                div.title = data.message.username + " is currently leading the bid!";
+                div.title = data.username + " is currently leading the bid!";
             }
             if (timer_interval_id != null) {
                 clearTimeout(timer_interval_id);
