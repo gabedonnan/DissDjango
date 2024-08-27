@@ -73,17 +73,18 @@
         <br />
         <button id="download_history">Download Auction History</button>
         <p id="users_connected">1 Connected User(s)</p>
+        <h4>Auction Mechanical Description</h4>
+        <p id="auction_description">
+            This auction type involves many users bidding against one another without price restrictions. <br/>
+
+            Users may place a bid to purchase the asset being auctioned, other users are not informed about who placed the bid or at what price.<br/>
+
+            Once all users in the room have placed their bids, or after the timer runs out, the user who placed the highest bid during the course of the auction wins.<br/>
+
+            Each user may only bid once.
+        </p>
     </div>
-    <h4>Auction Mechanical Description</h4>
-    <p id="auction_description">
-        This auction type involves many users bidding against one another without price restrictions. <br/>
 
-        Users may place a bid to purchase the asset being auctioned, other users are not informed about who placed the bid or at what price.<br/>
-
-        Once all users in the room have placed their bids, or after the timer runs out, the user who placed the highest bid during the course of the auction wins.<br/>
-
-        Each user may only bid once.
-    </p>
     <script>
       const room_id = window.location.pathname
       const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id + (room_id.endsWith("/") ? "" : "/"));
