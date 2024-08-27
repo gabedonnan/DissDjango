@@ -112,6 +112,23 @@
         <br />
         <button id="download_history">Download Auction History</button>
         <p id="users_connected">1 Connected User(s)</p>
+        <h4>Auction Mechanical Description</h4>
+        <p id="auction_description">
+            This auction type involves users both buying and selling an asset to make profit. <br/>
+
+            Users may place a bid or ask order at a certain price level and quantity.<br/>
+
+            These orders remain in a structure called a "Limit Order Book" until one of a few things happens:<br/>
+
+            If a user's placed buy order is buying at a high enough price that it is higher than the value of the lowest priced sell order, the sell order is fulfilled.<br/>
+            The same happens in the other direction, if a sell order is priced low enough that it crosses with the highest buy order.<br/>
+
+            Order may be partially fulfilled, where you might place a buy order for 10 of an asset at price 5, if only 5 sell orders on the other side exist at price 5 or lower, this results in a partial fulfilment.<br/>
+
+            Partially filled orders are added to the limit order book after the filled portion is subtracted (e.g. our example would result in a buy order of quantity 5 at price 5.<br/>
+
+            Users may make unlimited orders.<br/>
+        </p>
     </div>
     <script>
       const room_id = window.location.pathname
