@@ -74,6 +74,14 @@
         <button id="download_history">Download Auction History</button>
         <p id="users_connected">1 Connected User(s)</p>
     </div>
+    <h4>Auction Mechanical Description</h4>
+        <p id="auction_description">
+            This auction type involves one auctioneer who sets a price then steadily decreases that price. <br/>
+
+            Users may place a bid to purchase the asset being auctioned whenever they feel that the auctioneer has reached a low enough price for them.<br/>
+
+            The first legal bid made by a user is the bid executed.<br/>
+        </p>
     <script>
       const room_id = window.location.pathname
 const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_id + (room_id.endsWith("/") ? "" : "/"));
