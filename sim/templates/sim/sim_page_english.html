@@ -71,10 +71,20 @@
         <br />
         <span id="utility" title="The price you think the asset is worth to you, try and bid below this!">Current utility price for this asset: £0</span>
         <br />
+        <br />
         <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
         <br />
         <button id="download_history">Download Auction History</button>
         <p id="users_connected">1 Connected User(s)</p>
+        <br />
+        <br />
+        <p id="auction_description">
+            This auction type involves many users bidding against one another at strictly increasing prices.
+            Users may place a bid to purchase the asset being auctioned, if the timer at the top of the screen runs out, that user has won.
+            Other users may at any time before the auction finishes, bid a number greater than the leading bid to become the leader.
+            New bids reset the timer, so that last second bidding is discouraged.
+            A user may not bid over themselves.
+        </p>
     </div>
     <script>
       const room_id = window.location.pathname
