@@ -67,8 +67,8 @@
         <button type="submit" id="id_message_send_button">Bid</button>
         <br />
         <br />
-        <p id="profits">Total Profits Made: £0</p>
-        <p id="utility">Current utility price for this asset: £0</p>
+        <p id="profits" title="Make sure to buy assets below your utility price to profit!">Total Profits Made: £0</p>
+        <p id="utility" title="The price you think the asset is worth to you, try and bid below this!">Current utility price for this asset: £0</p>
         <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
         <br />
         <button id="download_history">Download Auction History</button>
@@ -200,8 +200,10 @@
             div.innerHTML = "£" + data.message.price_update;
             if (data.username == "{{request.session.username}}") {
                 div.style.color = "green";
+                div.title = "you are currently leading the bid!";
             } else {
                 div.style.color = "black";
+                div.title = data.message.username + " is currently leading the bid!";
             }
             if (timer_interval_id != null) {
                 clearTimeout(timer_interval_id);
