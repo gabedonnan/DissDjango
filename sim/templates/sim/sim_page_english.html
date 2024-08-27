@@ -198,6 +198,11 @@
         if (data.message.hasOwnProperty("price_update")) {
             var div = document.getElementById("id_bid_price_display");
             div.innerHTML = "£" + data.message.price_update;
+            if (data.username == "{{request.session.username}}") {
+                div.style.color = "green";
+            } else {
+                div.style.color = "black";
+            }
             if (timer_interval_id != null) {
                 clearTimeout(timer_interval_id);
                 start_auction_timer(
