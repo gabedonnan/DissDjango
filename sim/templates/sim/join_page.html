@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulation Waiting Room</title>
+</head>
+<body>
+    <form id="sim_options">
+        <label for="room_type">Room Type:</label>
+        <select id="room_type" name="room_type">
+            <option value="dutch">Dutch Auction</option>
+            <option value="english">English Auction</option>
+            <option value="FPSB">First Price Sealed Bid Auction</option>
+            <option value="SPSB">Second Price Sealed Bid Auction</option>
+            <option value="CDA">Continuous Double Auction</option>
+        </select>
+
+        <br>
+        <label for="room_id">Room ID</label>
+        <input id="room_id" type="text" name="room_id">
+        <input type="submit" value="Join">
+
+        <script>
+
+            document.getElementById("sim_options").addEventListener("submit",
+                function(event) {
+                    event.preventDefault();
+
+                    let room_type = document.getElementById("room_type").value;
+                    let room_id = document.getElementById("room_id").value;
+
+                    window.location.href = room_type + "/" + room_id;
+                }
+            );
+
+        </script>
+    </form>
+
+
+</body>
+</html>

@@ -7,10 +7,12 @@ from .views import (
     simulation_page_fpsb,
     simulation_page_spsb,
     simulation_page_cda,
+    join_page
 )
 
 urlpatterns = [
     path("", main_page, name="main_page"),
+    path("join", join_page, name="join_page"),
     re_path(
         r"dutch/(?P<room_name>\w+)", simulation_page_dutch, name="simulation_page_dutch"
     ),  # Dutch room path
