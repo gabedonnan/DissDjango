@@ -72,7 +72,7 @@
         <button type="submit" id="id_message_send_button">Bid</button>
         <br />
         <br />
-        <span title="Make sure to buy assets below your utility price to profit!" id="profits">Total Profits Made: £0</span>
+        <span id="profits" title="Make sure to buy assets below your utility price to profit!">Total Profits Made: £0</span>
         <br />
         <span id="utility" title="The price you think the asset is worth to you, try and bid below this!">Current utility price for this asset: £0</span>
         <br />
@@ -215,6 +215,12 @@
             is_admin = true;
             var send_box = document.getElementById("id_message_send_input");
             var send_button = document.getElementById("id_message_send_button");
+            var profit_display = document.getElementById("profits");
+            var utility_display = document.getElementById("utility");
+            var money_available_display = document.getElementById("money_available");
+            profit_display.style.display = 'none';
+            utility_display.style.display = 'none';
+            money_available_display.style.display = 'none';
             send_box.style.display = 'none';
             send_button.style.display = 'none';
         }

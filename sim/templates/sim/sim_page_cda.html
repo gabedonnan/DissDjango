@@ -304,6 +304,12 @@
             send_button_bid.style.display = 'none';
             send_box_quantity.style.display = 'none';
             send_button_ask.style.display = 'none';
+            var profit_display = document.getElementById("profits");
+            var utility_display = document.getElementById("utility");
+            var money_available_display = document.getElementById("money_available");
+            profit_display.style.display = 'none';
+            utility_display.style.display = 'none';
+            money_available_display.style.display = 'none';
         }
 
         if (data.message.hasOwnProperty("price_update")) {
