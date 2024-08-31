@@ -326,7 +326,7 @@ class ContinuousDoubleAuction(Auction):
     asks: SortedDict[int, LimitLevel]
     orders: dict[int, Order]
     order_id: int
-    executed_transactions: list[str, str, int, int]  # buyer, seller, quantity, price
+    bid_history: list[str, str, int, int]  # buyer, seller, quantity, price
 
     # Unix timestamp of last bid to calculate whether the auction has finished
     timestamp: float | None = None
@@ -344,7 +344,7 @@ class ContinuousDoubleAuction(Auction):
         self.asks = SortedDict()
         self.orders = {}
         self.order_id = 0
-        self.executed_transactions = []
+        self.bid_history = []
         self.time_difference = int(timer)
 
     def get_side(self, is_bid: bool) -> SortedDict[int, LimitLevel]:
@@ -385,7 +385,7 @@ class ContinuousDoubleAuction(Auction):
             head_order: Order = best_value.get_head()
 
             if order.quantity <= head_order.quantity:
-                self.executed_transactions.append(
+                self.bid_history.append(
                     [
                         order.trader_id if order.is_bid else head_order.trader_id,
                         head_order.trader_id if order.is_bid else order.trader_id,
@@ -398,7 +398,7 @@ class ContinuousDoubleAuction(Auction):
                 best_value.quantity -= order.quantity
                 order.quantity = 0
             else:
-                self.executed_transactions.append(
+                self.bid_history.append(
                     [
                         order.trader_id if order.is_bid else head_order.trader_id,
                         head_order.trader_id if order.is_bid else order.trader_id,
