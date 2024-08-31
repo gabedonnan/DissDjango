@@ -82,9 +82,9 @@
     >
         <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
 
-        <h3 style="background-color: #A9A9A9; padding-top: 1%; padding-bottom: 1%; margin-bottom: 0px;">Limit Order Book</h3>
+        <h3 style="background-color: #ccc; padding-top: 1%; padding-bottom: 1%; margin-bottom: 0px;">Limit Order Book</h3>
         <div class="row">
-          <div class="column" style="background-color:#aaa;" id="bid_container">
+          <div class="column" style="background-color:#bbb;" id="bid_container">
               <h2>Bids</h2>
               <p id="bid_1"></p>
               <p id="bid_2"></p>
@@ -129,14 +129,16 @@
 
             Users may place a bid or ask order at a certain price level and quantity.<br/>
 
-            These orders remain in a structure called a "Limit Order Book" until one of a few things happens:<br/>
+            Placed orders are added to a structure called a limit order book.<br/>
 
-            If a user's placed buy order is buying at a high enough price that it is higher than the value of the lowest priced sell order, the sell order is fulfilled.<br/>
-            The same happens in the other direction, if a sell order is priced low enough that it crosses with the highest buy order.<br/>
+            Bid orders represent a request to buy Q assets at price P. Ask orders represent a request to sell Q assets at price P. <br/>
 
-            Order may be partially fulfilled, where you might place a buy order for 10 of an asset at price 5, if only 5 sell orders on the other side exist at price 5 or lower, this results in a partial fulfilment.<br/>
+            If a user's placed bid order is at a high enough price that it is higher than the value of the lowest priced ask order, the ask order is fulfilled and a trade occurs.<br/>
+            The same happens in the other direction, if an ask order is priced low enough that it crosses with the highest bid order a trade occurs.<br/>
 
-            Partially filled orders are added to the limit order book after the filled portion is subtracted (e.g. our example would result in a buy order of quantity 5 at price 5.<br/>
+            Order may be partially fulfilled, where you might place a bid order for 10 of an asset at price 5, if only 5 quantity of ask orders on the other side exist at price 5 or lower, this results in a partial fulfilment.<br/>
+
+            Partially filled orders are added to the limit order book after the filled portion is subtracted (e.g. our example would result in a buy order of quantity 5 at price 5.)<br/>
 
             Users may make unlimited orders.<br/>
         </p>
@@ -309,7 +311,7 @@
                 if (i - 1 >= data.message.price_update.bids.length) {
                     bid_children[i].innerHTML = "";
                 } else {
-                    bid_children[i].innerHTML = data.message.price_update.bids[i-1][0] + " @ " + data.message.price_update.bids[i-1][1];
+                    bid_children[i].innerHTML = data.message.price_update.bids[i-1][0] + " @ £" + data.message.price_update.bids[i-1][1];
                 }
             }
 
@@ -317,7 +319,7 @@
                 if (i - 1 >= data.message.price_update.asks.length) {
                     ask_children[i].innerHTML = "";
                 } else {
-                    ask_children[i].innerHTML = data.message.price_update.asks[i-1][0] + " @ " + data.message.price_update.asks[i-1][1];
+                    ask_children[i].innerHTML = data.message.price_update.asks[i-1][0] + " @ £" + data.message.price_update.asks[i-1][1];
                 }
             }
 

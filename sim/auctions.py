@@ -194,6 +194,7 @@ class FirstPriceSealedBidAuction(Auction):
     # A set of the users that have bid already (no double bidding!)
     users_seen: set[str]
     auction_over: bool = False
+    bid_history: list[str, int, int]  # Username, price bid, limit price
 
     def __init__(
         self,
@@ -205,6 +206,7 @@ class FirstPriceSealedBidAuction(Auction):
         super().__init__(users, limit_price_distribution, money_range)
         self.users_seen = set()
         self.time_difference = int(timer)
+        self.bid_history = []
 
     def bid(self, account: str, amount: int) -> bool:
         try:
@@ -225,6 +227,7 @@ class FirstPriceSealedBidAuction(Auction):
             )
             self.users_seen.add(account)
             made_bid = True
+            self.bid_history.append([account, amount, current_user.limit_price])
             # Can a user pay for the asset
             if (
                 self.timestamp is None
@@ -261,6 +264,7 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
     auction_leader: deque = deque([None, None])
     auction_price: deque = deque([0, 0])
 
+
     def bid(self, account: str, amount: int) -> bool:
         try:
             amount = int(amount)
@@ -279,6 +283,7 @@ class SecondPriceSealedBidAuction(FirstPriceSealedBidAuction):
                 1  # Always increase the number of bids even if it isnt the highest
             )
             self.users_seen.add(account)
+            self.bid_history.append([account, amount, current_user.limit_price])
             made_bid = True
             # Can a user pay for the asset
             if (
