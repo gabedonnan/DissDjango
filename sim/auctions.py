@@ -21,7 +21,10 @@ class AuctionUser:
         self.username = username
         dist, min_range, max_range = limit_price_distribution
         self.limit_price = int(dist(min_range, max_range))
-        self.money = randint(*money_range)
+        if isinstance(money_range, int):
+            self.money = money_range
+        else:
+            self.money = randint(*money_range)
 
     def __eq__(self, other):
         if isinstance(other, AuctionUser):

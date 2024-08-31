@@ -71,6 +71,8 @@
         <br />
         <span id="utility" title="The price you think the asset is worth to you, try and bid below this!">Current utility price for this asset: £0</span>
         <br />
+        <span id="money_available" title="The current amount of money you have available to spend">Money Available: £0</span>
+        <br />
         <br />
         <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
         <br />
@@ -221,6 +223,7 @@
                 div.style.color = "black";
                 div.title = data.username + " is currently leading the bid!";
             }
+
             if (timer_interval_id != null) {
                 clearTimeout(timer_interval_id);
                 start_auction_timer(
@@ -275,6 +278,11 @@
             element.click();
 
             document.body.removeChild(element);
+        }
+
+        if (data.message.hasOwnProperty("money_available") && data.username == "{{request.session.username}}") {
+            var money_div = document.getElementById("money_available");
+            money_div.innerHTML = "Money Available: £" + data.message.money_available;
         }
 
         if (data.message.hasOwnProperty("countdown_timer") && timer_interval_id === null) {

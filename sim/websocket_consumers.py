@@ -170,6 +170,7 @@ class SimConsumer(AsyncWebsocketConsumer):
         res["limit_price"] = sim.users[username].limit_price
         res["update_user_count"] = connection_counters[self.room_id]
         res["set_admin"] = "set_admin" in res  # False unless it is already True
+        res["money_available"] = sim.users[username].money
         # The set admin is to tell webpages to render differently if the user is the room admin
         return broadcast_msg, sim
 
@@ -259,7 +260,7 @@ class SimConsumer(AsyncWebsocketConsumer):
         if "starting_money" in self.query_params and self.query_params[
             "starting_money"
         ] not in ["", None]:
-            sim.asset_range = self.query_params["starting_money"].split(",")
+            sim.money_range = int(self.query_params["starting_money"])
         if "starting_bid" in self.query_params and self.query_params[
             "starting_bid"
         ] not in ["", None]:

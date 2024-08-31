@@ -68,7 +68,12 @@
         <br />
         <br />
         <p id="profits">Total Profits Made: £0</p>
+        <br />
         <p id="utility">Current utility price for this asset: £0</p>
+        <br />
+        <span id="money_available" title="The current amount of money you have available to spend">Money Available: £0</span>
+        <br />
+        <br />
         <div id="bid_history" style="max-height: 400px; overflow-y: auto;"></div>
         <br />
         <button id="download_history">Download Auction History</button>
@@ -280,6 +285,11 @@ sim_socket.onmessage = function(e) {
             data.message.countdown_timer,
             document.getElementById("countdown_timer")
         );
+    }
+
+    if (data.message.hasOwnProperty("money_available") && data.username == "{{request.session.username}}") {
+        var money_div = document.getElementById("money_available");
+        money_div.innerHTML = "Money Available: £" + data.message.money_available;
     }
 
     if (data.message.hasOwnProperty("max_time") && max_time === null) {
