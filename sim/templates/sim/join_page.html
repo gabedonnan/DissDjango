@@ -3,6 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Join a Simulation</title>
+    <style>
+        * {
+            text-align: center;
+        }
+
+        #room_id, #room_type {
+            width: 90vw;
+            height: 80px;
+            padding: 15px;
+            margin: 10px auto;
+            box-sizing: border-box;
+            display: block;
+            font-size: 1.2em;
+            font-family: Arial, sans-serif;
+        }
+
+        #room_id:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        button {
+            width: 30%;
+            height: 40px;
+        }
+    </style>
 </head>
 <body>
     <form id="sim_options">
