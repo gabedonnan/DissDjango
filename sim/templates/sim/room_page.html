@@ -106,9 +106,14 @@
             document.getElementById("sim_options").addEventListener("submit",
                 function(event) {
                     event.preventDefault();
-
+                    let time = null;
                     let room_type = document.getElementById("room_type").value;
-                    let time = document.getElementById("time").value;
+                    if (document.getElementById("time")) {
+                        time = document.getElementById("time").value;
+                    } else {
+                        time = 0;
+                    }
+
                     let starting_money = document.getElementById("starting_money").value;
                     let limit_distribution = document.getElementById("limit_distribution").value;
                     let limit_min = document.getElementById("limit_min").value;
