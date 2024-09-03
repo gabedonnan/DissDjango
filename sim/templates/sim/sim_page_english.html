@@ -109,8 +109,6 @@
       var utility_price = 0;
       var is_admin = false;  // Changing this just changes how your page looks, doesnt give you admin permissions, sorry
 
-      var response_timer = null;
-
       function add_message_to_top(message) {
         // Get the message container
         const message_container = document.getElementById('bid_history');
@@ -191,8 +189,6 @@
             );
         }
 
-        response_timer = new Date();
-        response_timer = response_timer.getTime();
       };
 
       document.querySelector("#download_history").onclick = function (e) {
@@ -210,11 +206,6 @@
 
       sim_socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-
-        if (response_timer != null) {
-            var temp_time = new Date();
-            console.log(temp_time.getTime() - response_timer);
-        }
 
         if (data.message.hasOwnProperty("set_admin") && data.message.set_admin == true) {
             // Change the webpage for auctions in which hte admin operates differently

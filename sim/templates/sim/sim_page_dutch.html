@@ -106,6 +106,8 @@ var max_time = null;
 var profit = 0;
 var utility_price = 0;
 var is_admin = false; // Changing this just changes how your page looks, doesnt give you admin permissions, sorry
+var response_timer = null;
+
 
 function add_message_to_top(message) {
     // Get the message container
@@ -199,7 +201,8 @@ document.querySelector("#id_message_send_button").onclick = function(e) {
         }
     }
 
-
+    response_timer = new Date();
+    response_timer = response_timer.getTime();
 };
 
 document.querySelector("#download_history").onclick = function(e) {
@@ -215,6 +218,12 @@ document.querySelector("#download_history").onclick = function(e) {
 
 sim_socket.onmessage = function(e) {
     const data = JSON.parse(e.data);
+
+    if (response_timer != null) {
+        var temp_time = new Date();
+        console.log(temp_time.getTime() - response_timer);
+        response_timer = null;
+    }
 
     if (data.message.hasOwnProperty("set_admin") && data.username == "{{request.session.username}}") {
         if (data.message.set_admin == true) {
