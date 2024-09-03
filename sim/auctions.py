@@ -175,7 +175,7 @@ class EnglishAuction(Auction):
 
         return False
 
-    def check_finished(self) -> bool:
+    def bidding_finished(self) -> bool:
         # Returns a boolean indicating whether the auction is finished, in this case only time can end it.
         return (
             self.timestamp is not None
