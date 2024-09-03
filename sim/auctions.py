@@ -99,7 +99,7 @@ class DutchAuction(Auction):
             current_user = self.users[account]
             auctioneer = self.users[self.auctioneer]
             # Can a user pay for the asset
-            if current_user.money >= self.auction_price:
+            if self.auction_price is not None and current_user.money >= self.auction_price:
                 # Transfer money from buyer to auctioneer
                 current_user.money -= self.auction_price
                 auctioneer.money += self.auction_price
