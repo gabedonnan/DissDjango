@@ -63,9 +63,8 @@
       id="id_chat_item_container"
       style="font-size: 20px; text-align: center;"
     >
-        <p id="countdown_timer">Current Time Remaining: N/A Seconds</p>
         <p>Current Bid:</p>
-        <p id="id_bid_price_display">100</p>
+        <p id="id_bid_price_display"></p>
         <br />
         <!--    Bid Number    -->
         <input type="number" id="id_message_send_input" />
@@ -103,12 +102,10 @@ const sim_socket = new WebSocket("wss://" + window.location.host + "/ws" + room_
 console.log(room_id);
 
 var auction_finished = false;
-var timer_interval_id = null;
 var max_time = null;
 var profit = 0;
 var utility_price = 0;
 var is_admin = false; // Changing this just changes how your page looks, doesnt give you admin permissions, sorry
-var response_timer = null;
 
 
 function add_message_to_top(message) {
@@ -122,19 +119,6 @@ function add_message_to_top(message) {
     // Insert the new message at the top
     message_container.insertBefore(new_message, message_container.firstChild);
 }
-
-function start_auction_timer(duration, display) {
-    timer_interval_id = setInterval(
-        function() {
-            if (--duration + 1 > 0) {
-                display.textContent = "Current Time Remaining: " + duration + " Seconds";
-            } else {
-                display.textContent = "Bidding Finished!";
-            }
-        },
-        1000
-    );
-};
 
 sim_socket.onopen = function(e) {
     console.log("The connection was setup successfully !");
@@ -164,47 +148,34 @@ document.querySelector("#id_message_send_button").onclick = function(e) {
         "#id_message_send_input"
     ).value;
 
-    if (document.getElementById("countdown_timer").textContent == "Bidding Finished!") {
-        // IF the browser thinks the countdown timer is finished then send off an "is finished" check to the server
+
+
+    if (is_admin) {
         sim_socket.send(
             JSON.stringify({
                 message: {
-                    end_auction: true
+                    update_auction: {
+                        method: "update_offer",
+                        price: messageInput
+                    }
                 },
                 username: "{{request.session.username}}"
             })
         );
     } else {
-
-        if (is_admin) {
-            sim_socket.send(
-                JSON.stringify({
-                    message: {
-                        update_auction: {
-                            method: "update_offer",
-                            price: messageInput
-                        }
-                    },
-                    username: "{{request.session.username}}"
-                })
-            );
-        } else {
-            sim_socket.send(
-                JSON.stringify({
-                    message: {
-                        update_auction: {
-                            method: "bid",
-                            price: null
-                        }
-                    },
-                    username: "{{request.session.username}}"
-                })
-            );
-        }
+        sim_socket.send(
+            JSON.stringify({
+                message: {
+                    update_auction: {
+                        method: "bid",
+                        price: null
+                    }
+                },
+                username: "{{request.session.username}}"
+            })
+        );
     }
 
-    response_timer = new Date();
-    response_timer = response_timer.getTime();
 };
 
 document.querySelector("#download_history").onclick = function(e) {
@@ -221,12 +192,6 @@ document.querySelector("#download_history").onclick = function(e) {
 sim_socket.onmessage = function(e) {
     const data = JSON.parse(e.data);
 
-    if (response_timer != null) {
-        var temp_time = new Date();
-        console.log(temp_time.getTime() - response_timer);
-        response_timer = null;
-    }
-
     if (data.message.hasOwnProperty("set_admin") && data.username == "{{request.session.username}}") {
         if (data.message.set_admin == true) {
             is_admin = true;
@@ -241,13 +206,6 @@ sim_socket.onmessage = function(e) {
     if (data.message.hasOwnProperty("price_update")) {
         var div = document.getElementById("id_bid_price_display");
         div.innerHTML = "£" + data.message.price_update;
-        if (timer_interval_id != null) {
-            clearTimeout(timer_interval_id);
-            start_auction_timer(
-                max_time,
-                document.getElementById("countdown_timer")
-            );
-        }
 
         // Update running log of bids
         add_message_to_top(data.username + " : £" + data.message.price_update);
@@ -295,13 +253,6 @@ sim_socket.onmessage = function(e) {
         element.click();
 
         document.body.removeChild(element);
-    }
-
-    if (data.message.hasOwnProperty("countdown_timer") && timer_interval_id === null) {
-        start_auction_timer(
-            data.message.countdown_timer,
-            document.getElementById("countdown_timer")
-        );
     }
 
     if (data.message.hasOwnProperty("money_available") && data.username == "{{request.session.username}}") {
