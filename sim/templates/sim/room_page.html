@@ -16,19 +16,15 @@
                 <option value="CDA">Continuous Double Auction</option>
             </select>
 
-            <br>
-            <label for="asset">Asset being auctioned:</label>
-            <input id="asset" type="text" name="asset">
-            <br>
-            <label for="time">Countdown length:</label>
-            <input id="time" type="number" name="time">
+
             <br>
             <label for="starting_money">Starting money:</label>
             <input id="starting_money" type="number" name="starting_money">
 
             <div id="optional_sim_settings">
-                <label for="starting_bid">Starting bid:</label>
-                <input id="starting_bid" type="number" name="starting_bid">
+                <br>
+                <label for="time">Countdown length:</label>
+                <input id="time" type="number" name="time">
             </div>
 
             <br>
@@ -82,22 +78,30 @@
 
                     if (val == "dutch") {
                         parent.innerHTML = `
-                            <label for="starting_bid">Starting bid:</label>
-                            <input id="starting_bid" type="number" name="starting_bid">
                         `;
                     } else if (val == "english") {
                         parent.innerHTML = `
-                            <label for="starting_bid">Starting bid:</label>
-                            <input id="starting_bid" type="number" name="starting_bid">
+                            <br>
+                            <label for="time">Countdown length:</label>
+                            <input id="time" type="number" name="time">
                         `;
                     } else if (val == "FPSB") {
                         parent.innerHTML = `
+                            <br>
+                            <label for="time">Countdown length:</label>
+                            <input id="time" type="number" name="time">
                         `;
                     } else if (val == "SPSB") {
                         parent.innerHTML = `
+                            <br>
+                            <label for="time">Countdown length:</label>
+                            <input id="time" type="number" name="time">
                         `;
                     } else if (val == "CDA") {
                         parent.innerHTML = `
+                            <br>
+                            <label for="time">Countdown length:</label>
+                            <input id="time" type="number" name="time">
                         `;
                     }
                 }
@@ -107,7 +111,6 @@
                 function(event) {
                     event.preventDefault();
 
-                    let asset = document.getElementById("asset").value;
                     let room_type = document.getElementById("room_type").value;
                     let time = document.getElementById("time").value;
                     let starting_money = document.getElementById("starting_money").value;
@@ -116,7 +119,7 @@
                     let limit_max = document.getElementById("limit_max").value;
 
                     // window.location.href = window.location.href.substring(0, nthIndex(window.location.href, "/", 3) + 1) + makeid(5);
-                    window.location.href = room_type + "/" + makeid(5) + "/?&asset=" + asset + "&time=" + time + "&starting_money=" + starting_money + "&limit_distribution_function=" + limit_distribution + "&limit_min=" + limit_min + "&limit_max=" + limit_max;
+                    window.location.href = room_type + "/" + makeid(5) + "/?&&time=" + time + "&starting_money=" + starting_money + "&limit_distribution_function=" + limit_distribution + "&limit_min=" + limit_min + "&limit_max=" + limit_max;
                 }
             );
 
