@@ -94,7 +94,7 @@ class DutchAuction(Auction):
         money_range: tuple[int, int] = (1000, 2000),
     ):
         super().__init__(users, limit_price_distribution, money_range)
-        self.bid_history = []
+        self.bid_history = [("username", "price_bid", "limit_price")]
 
     def bid(self, account: str) -> bool:
         if account != self.auctioneer and account in self.users.keys():
@@ -154,7 +154,7 @@ class EnglishAuction(Auction):
         timer: int = 30,  # Default timer is 10 seconds
     ):
         super().__init__(users, limit_price_distribution, money_range)
-        self.bid_history = []
+        self.bid_history = [("username", "price_bid", "limit_price")]
         self.time_difference = int(timer)
 
     def bid(self, account: str, amount: int) -> bool:
@@ -216,7 +216,7 @@ class FirstPriceSealedBidAuction(Auction):
         super().__init__(users, limit_price_distribution, money_range)
         self.users_seen = set()
         self.time_difference = int(timer)
-        self.bid_history = []
+        self.bid_history = [("username", "price_bid", "limit_price")]
 
     def bid(self, account: str, amount: int) -> bool:
         try:
@@ -359,7 +359,7 @@ class ContinuousDoubleAuction(Auction):
         self.asks = SortedDict()
         self.orders = {}
         self.order_id = 0
-        self.bid_history = []
+        self.bid_history = [("buyer_username", "seller_username", "quantity_bid", "price_bid")]
         self.time_difference = int(timer)
 
     def get_side(self, is_bid: bool) -> SortedDict[int, LimitLevel]:
