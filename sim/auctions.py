@@ -94,6 +94,7 @@ class DutchAuction(Auction):
         money_range: tuple[int, int] = (1000, 2000),
     ):
         super().__init__(users, limit_price_distribution, money_range)
+        self.bid_history = []
 
     def bid(self, account: str) -> bool:
         if account != self.auctioneer and account in self.users.keys():
