@@ -85,6 +85,7 @@ class DutchAuction(Auction):
     auction_price: int | None = None
     # Username maps to money amount and quantity of items owned
     users: dict[str, AuctionUser]
+    bid_history: list[tuple[str, int, int]]
 
     def __init__(
         self,
@@ -107,6 +108,11 @@ class DutchAuction(Auction):
                 current_user.profits += current_user.limit_price - self.auction_price
                 auctioneer.profits -= auctioneer.limit_price - self.auction_price
 
+                self.bid_history.append(
+                    (account, self.auction_price, current_user.limit_price)
+                )
+                self.bid_history.append(tuple())
+
                 self.auction_price = None
                 return True
         return False
@@ -121,6 +127,9 @@ class DutchAuction(Auction):
             self.auction_price is None or 0 < price < self.auction_price
         ):
             self.auction_price = price
+            self.bid_history.append(
+                (account, price, self.users[account].limit_price)
+            )
             return True
         return False
 
