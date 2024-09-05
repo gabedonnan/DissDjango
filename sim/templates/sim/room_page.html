@@ -47,11 +47,11 @@
             function makeid(length) {
                 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
                 let result = '';
-                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                const charactersLength = characters.length;
+                const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                const characters_length = characters.length;
                 let counter = 0;
                 while (counter < length) {
-                  result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                  result += characters.charAt(Math.floor(Math.random() * characters_length));
                   counter += 1;
                 }
                 return result;
@@ -59,8 +59,9 @@
 
             function nthIndex(str, pat, n){
                 // https://stackoverflow.com/questions/14480345/how-to-get-the-nth-occurrence-in-a-string
-                var L= str.length, i= -1;
-                while(n-- && i++<L){
+                var len = str.length;
+                var i = -1;
+                while(n-- && i++ < len){
                     i= str.indexOf(pat, i);
                     if (i < 0) break;
                 }
@@ -120,7 +121,7 @@
                     let limit_max = document.getElementById("limit_max").value;
 
                     // window.location.href = window.location.href.substring(0, nthIndex(window.location.href, "/", 3) + 1) + makeid(5);
-                    window.location.href = room_type + "/" + makeid(5) + "/?&&time=" + time + "&starting_money=" + starting_money + "&limit_distribution_function=" + limit_distribution + "&limit_min=" + limit_min + "&limit_max=" + limit_max;
+                    window.location.href = room_type + "/" + makeid(5) + "/?&time=" + time + "&starting_money=" + starting_money + "&limit_distribution_function=" + limit_distribution + "&limit_min=" + limit_min + "&limit_max=" + limit_max;
                 }
             );
 
